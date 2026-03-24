@@ -30,7 +30,7 @@ async def create_user(
     result = await db.execute(select(User).where(User.email == email))
     existing = result.scalar_one_or_none()
     if existing:
-        print(f"  ⚠  User {email} already exists — skipping.")
+        print(f"  [skip]  User {email} already exists.")
         return existing
 
     # Get role
@@ -55,7 +55,7 @@ async def create_user(
 
     db.add(UserRole(user_id=user.id, role_id=role.id))
     await db.commit()
-    print(f"  ✓  Created {role_name}: {email} / {password}")
+    print(f"  [ok]  Created {role_name}: {email} / {password}")
     return user
 
 
