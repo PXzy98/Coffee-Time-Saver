@@ -31,7 +31,7 @@ async def create_task(
     service = TaskService(db)
     tasks = await service.create_task(body.model_dump(), current_user)
     await audit_log(db, action="task.create", entity_type="task", user_id=current_user.id)
-    await manager.publish(current_user.id, {"type": "task.updated", "payload": {"tasks": [t.id for t in tasks]}})
+    await manager.publish(current_user.id, {"type": "task.updated", "payload": {"tasks": [str(t.id) for t in tasks]}})
     return tasks
 
 
