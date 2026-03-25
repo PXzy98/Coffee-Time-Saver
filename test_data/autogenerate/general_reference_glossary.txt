@@ -1,0 +1,79 @@
+PROJECT MANAGEMENT GLOSSARY — INTERNAL REFERENCE
+Version 2.1  |  Issued by: PMO Centre of Excellence  |  Date: January 2026
+
+This glossary defines standard terminology used across all projects governed by the Project Management Office (PMO). It is a reference document only and does not contain project-specific commitments, action items, or deadlines.
+
+---
+
+AGILE
+An iterative approach to project delivery that emphasises flexibility, collaboration, and incremental releases. Work is organised in short cycles (sprints) of 1–4 weeks.
+
+BASELINE
+The approved version of a project plan (schedule, scope, or budget) used as a reference point for measuring progress and managing change.
+
+BUSINESS CASE
+A formal document that justifies the initiation of a project by describing the problem or opportunity, proposed solution, costs, benefits, risks, and strategic alignment.
+
+CHANGE CONTROL BOARD (CCB)
+A group of stakeholders authorised to review and approve or reject changes to the project's scope, schedule, or budget. All Change Requests must be reviewed by the CCB before implementation.
+
+CHANGE REQUEST (CR)
+A formal proposal to modify any aspect of a project baseline. Must include impact assessment on scope, cost, and schedule.
+
+CRITICAL PATH
+The longest sequence of dependent tasks in a project schedule. A delay on the critical path delays the entire project.
+
+DELIVERABLE
+A tangible output produced by a project — a document, software release, infrastructure component, or physical item — that satisfies a project requirement.
+
+EARNED VALUE MANAGEMENT (EVM)
+A technique for measuring project performance by comparing planned work (Planned Value), completed work (Earned Value), and actual costs (Actual Cost).
+
+GATE REVIEW
+A structured checkpoint at a defined phase of a project where a decision authority (Steering Committee or sponsor) reviews progress and decides whether to proceed, pause, or cancel.
+
+ISSUE
+A current problem or concern that is already affecting the project and requires resolution. Distinct from a risk, which is a potential future event.
+
+LESSONS LEARNED
+Documentation of what went well and what went poorly during a project or project phase, intended to improve future projects.
+
+MILESTONE
+A significant event in the project schedule, typically marking the completion of a major deliverable or phase. Milestones have zero duration.
+
+PMO (Project Management Office)
+The organisational unit responsible for defining and maintaining project management standards, providing governance oversight, and supporting project managers.
+
+PRINCE2
+A structured project management methodology widely used in government and public sector projects. Defines seven principles, seven themes, and seven processes.
+
+PROCUREMENT
+The process of acquiring goods or services from external vendors, including tendering, evaluation, contract award, and contract management.
+
+RACI MATRIX
+A responsibility assignment matrix that defines who is Responsible, Accountable, Consulted, and Informed for each task or deliverable.
+
+RISK
+An uncertain event that, if it occurs, will have a positive or negative effect on the project objectives. Each risk has a probability and an impact.
+
+RISK REGISTER
+A log of identified risks, including their description, probability, impact, risk rating, mitigation strategies, and risk owner.
+
+SCOPE CREEP
+The uncontrolled expansion of project scope without corresponding adjustments to schedule, budget, or resources.
+
+SPRINT
+In Agile/Scrum, a fixed-length iteration (typically 1–4 weeks) during which a defined set of work is completed and reviewed.
+
+STAKEHOLDER
+Any person, group, or organisation that may affect, be affected by, or perceive itself to be affected by the project.
+
+WATERFALL
+A sequential project delivery approach where phases (requirements, design, build, test, deploy) are completed one at a time before moving to the next.
+
+WORK BREAKDOWN STRUCTURE (WBS)
+A hierarchical decomposition of the project's total scope into manageable work packages. The WBS defines the full deliverable tree for the project.
+
+---
+
+END OF GLOSSARY

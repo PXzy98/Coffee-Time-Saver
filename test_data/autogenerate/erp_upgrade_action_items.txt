@@ -1,0 +1,67 @@
+ERP SYSTEM UPGRADE — SPRINT 4 RETROSPECTIVE & ACTION ITEMS
+Date: March 17, 2026
+Facilitator: Priya Nair (Project Manager)
+Attendees: Priya Nair, Daniel Fortier (Technical Lead), Amara Diallo (Business Analyst),
+           Hiro Tanaka (QA Lead), Fatou Sow (Change Management), Greg White (Vendor — SAP)
+
+---
+
+SPRINT 4 SUMMARY
+
+Sprint 4 covered the migration of the Finance module (GL, AP, AR) from the legacy Oracle system to SAP S/4HANA. The sprint closed with 34 of 38 user stories completed. Four stories were carried forward due to a data quality issue discovered during User Acceptance Testing (UAT).
+
+---
+
+CARRY-FORWARD ISSUES & ACTIONS
+
+Issue 1: Duplicate vendor records in master data
+During UAT, Amara Diallo identified 1,247 duplicate vendor records in the migrated AP module. The duplicates are causing incorrect payment matching.
+
+ACTION (HIGH PRIORITY): Amara Diallo to run deduplication script on vendor master data and produce a clean extract for Hiro Tanaka to re-run UAT by March 24, 2026.
+ACTION: Daniel Fortier to determine root cause of duplicates in the ETL pipeline and patch the transformation rule by March 21, 2026.
+ACTION: Daniel Fortier to re-execute the full AP data migration with the patched ETL by March 26, 2026.
+
+Issue 2: GL period-end close report missing two cost centres
+Hiro Tanaka flagged that cost centres CC-4412 and CC-4413 (Facilities) are absent from the GL period-end close report. These were not included in the initial chart of accounts mapping.
+
+ACTION: Amara Diallo to confirm the correct mapping for CC-4412 and CC-4413 with the Finance team. Deadline: March 20, 2026.
+ACTION: Greg White (SAP) to update the report configuration once mapping is confirmed. Estimated effort: 2 hours. Due: March 23, 2026.
+
+Issue 3: UAT sign-off not obtained from Finance Director
+UAT for the Finance module requires formal sign-off from the Finance Director (Catherine Leroux) before Sprint 5 can begin. As of today, sign-off has not been received.
+
+ACTION: Priya Nair to schedule a UAT review session with Catherine Leroux by March 19, 2026.
+ACTION: Priya Nair to escalate to the Steering Committee if sign-off is not received by March 24, 2026.
+
+---
+
+SPRINT 5 READINESS
+
+Sprint 5 is planned to begin March 30, 2026. It covers HR and Payroll module migration.
+
+ACTION: Daniel Fortier to complete the HR data model review and confirm readiness by March 27, 2026.
+ACTION: Fatou Sow to distribute the Sprint 5 change impact assessment to all department heads by March 25, 2026. Departments must confirm receipt.
+ACTION: Hiro Tanaka to prepare UAT test cases for HR/Payroll module by March 28, 2026.
+ACTION: Greg White to provision the Sprint 5 sandbox environment by March 21, 2026.
+
+---
+
+RISKS IDENTIFIED THIS SPRINT
+
+1. If Finance Director sign-off is delayed beyond March 24, Sprint 5 start date slips, putting the June 30 go-live at risk.
+2. The vendor master deduplication may reveal additional data quality issues in other modules (Purchasing, Inventory) — Amara to do a spot-check assessment.
+
+ACTION: Amara Diallo to run a spot-check data quality assessment on Purchasing and Inventory source data and report findings by March 27, 2026.
+
+---
+
+DECISIONS MADE
+
+- Sprint 5 will not start until Finance module UAT is signed off.
+- Data migration re-runs must be executed in the staging environment first; production migration to follow within 48 hours of staging sign-off.
+- All UAT test evidence must be stored in the SharePoint audit folder (ERP-UAT-Evidence).
+
+---
+
+Next meeting: Sprint 5 Planning, March 27, 2026, 13:00 EST (Zoom)
+Action item owner for follow-up: Priya Nair

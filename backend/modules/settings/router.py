@@ -10,7 +10,7 @@ from core.models import User, LLMConfig, UserRole, Role
 from core.logging import audit_log
 from config import settings as app_settings
 from modules.settings.schemas import (
-    LLMConfigOut, LLMConfigUpdate,
+    LLMConfigOut, LLMConfigCreate, LLMConfigUpdate,
     EmailBotConfigOut, EmailBotConfigUpdate,
     UserAdminOut, UserRoleUpdate,
 )
@@ -29,6 +29,21 @@ async def list_llm_configs(
 ):
     result = await db.execute(select(LLMConfig))
     return result.scalars().all()
+
+
+@router.post("/llm", response_model=LLMConfigOut, status_code=201)
+async def create_llm_config(
+    body: LLMConfigCreate,
+    current_user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    config = LLMConfig(**body.model_dump())
+    db.add(config)
+    await db.commit()
+    await db.refresh(config)
+    await audit_log(db, action="settings.llm.create", entity_type="llm_config",
+                    entity_id=str(config.id), user_id=current_user.id)
+    return config
 
 
 @router.put("/llm/{config_id}", response_model=LLMConfigOut)

@@ -248,3 +248,13 @@ export interface WsEvent<T = unknown> {
   type: string;
   payload: T;
 }
+
+export interface ProjectSuggestionPayload {
+  document_id: string;
+  document_name: string;
+  match_type: 'existing' | 'new';
+  project_id: string | null;
+  project_name: string;
+  confidence: number;
+  reason: string;
+}

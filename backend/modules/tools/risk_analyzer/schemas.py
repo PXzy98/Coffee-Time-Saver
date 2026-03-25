@@ -11,15 +11,20 @@ class RiskAnalyzerRunRequest(BaseModel):
 
 class RiskItem(BaseModel):
     id: str
+    title: str = ""
     description: str
-    category: str  # technical, schedule, resource, scope
-    likelihood: int  # 1-5
-    impact: int  # 1-5
-    risk_score: float  # likelihood × impact, normalized 0-1
-    confidence: float  # 0.0 - 1.0
+    category: str                    # technical, schedule, resource, scope, security, compliance
+    likelihood: int                  # 1-5
+    impact: int                      # 1-5
+    probability_label: str = ""      # Low / Medium / High
+    impact_label: str = ""           # Low / Medium / High
+    risk_score: float                # likelihood × impact, normalized 0-1
+    confidence: float                # 0.0 - 1.0
+    affected_area: str = ""
     source_documents: list[str]
     source_quotes: list[str]
-    mitigation: str
+    mitigation: str                  # legacy single string
+    mitigation_strategies: list[str] = []  # structured list matching BC format
 
 
 class InconsistencyItem(BaseModel):

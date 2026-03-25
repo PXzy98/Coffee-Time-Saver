@@ -14,6 +14,20 @@ class OllamaProvider(LLMProvider):
             temperature=request.temperature,
             max_tokens=request.max_tokens,
         )
+        if request.response_format == "json":
+            # Disable thinking for JSON-structured calls.
+            # Qwen3/deepseek-r1 on Ollama: thinking tokens consume the budget and
+            # leave content empty. Two complementary approaches:
+            #   1. extra_body think:false  — Ollama API-level flag
+            #   2. /no_think in the USER turn — Qwen3 spec says the control token
+            #      must appear in a user message, not the system message.
+            kwargs["extra_body"] = {"think": False}
+            messages = [m.model_dump() for m in request.messages]
+            for msg in messages:
+                if msg.get("role") == "user":
+                    msg["content"] = "/no_think\n" + msg["content"]
+                    break
+            kwargs["messages"] = messages
         response = await client.chat.completions.create(**kwargs)
         choice = response.choices[0]
         usage = response.usage

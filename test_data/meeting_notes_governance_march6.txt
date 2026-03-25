@@ -1,0 +1,141 @@
+MEETING NOTES — Governance Concept Review
+Subject: AI Integration Prototype — Senior Leadership Review
+Date: March 6, 2026
+Time: 09:00–09:35 EST
+Location: ADM Boardroom / Teams hybrid
+Classification: Unclassified | Non classifié
+
+ATTENDEES
+  - DG (Chair)
+  - PM Director
+  - Technical Authority (Daniel)
+  - IT Security Lead
+  - Privacy Advisor
+  - Enterprise Architect
+
+Regrets: Legal Counsel (written comments circulated in advance)
+
+
+------------------------------------------------------------
+AGENDA ITEM 1 — Purpose of Meeting (09:00)
+------------------------------------------------------------
+
+DG opened by clarifying scope of the discussion:
+  "Today isn't about approving a finished solution. It's about determining whether
+   exploring this concept is responsible and worthwhile under our constraints."
+
+PM Director framed the problem statement:
+  The challenge is fragmentation — decisions, risks, and commitments are distributed
+  across emails, transcripts, documents, and slide decks. The manual effort required
+  to synthesize this information before governance meetings and key decisions is
+  increasing and is a recognized efficiency gap.
+
+Technical Authority noted this is about augmentation, not automation:
+  The objective is reducing cognitive overhead for PMs and decision-makers — not
+  removing human judgment from governance processes.
+
+Enterprise Architect clarified the technical premise:
+  The prototype tests whether structured analysis across unstructured, exported data
+  can surface useful signals. This is not an infrastructure modernization initiative.
+
+
+------------------------------------------------------------
+AGENDA ITEM 2 — Feasibility and Prototype Approach (09:08)
+------------------------------------------------------------
+
+DG acknowledged uncertainty:
+  "We don't know if this will deliver meaningful value. That's what the prototype is for."
+
+Enterprise Architect on expected outcomes:
+  - We suspect value exists in inconsistency detection and dependency surfacing
+  - Prototype is explicitly designed to answer whether that value is real and measurable
+  - Partial success (demonstrated in controlled conditions) is sufficient to justify
+    refinement investment
+
+Technical Authority:
+  Outputs must be traceable and evidence-based. Even partial success justifies further work.
+  Failure modes are also informative — knowing limitations of this approach in our environment
+  is valuable data.
+
+ACTION: Enterprise Architect to circulate architecture design summary by March 10.
+
+
+------------------------------------------------------------
+AGENDA ITEM 3 — Responsible AI and Guardrails (09:13)
+------------------------------------------------------------
+
+Privacy Advisor requirements:
+  - Clear separation between extracted evidence and AI interpretation
+  - Outputs must show the evidence first; interpretation must be clearly labeled
+  - Human validation step required before any AI output informs a decision
+
+IT Security Lead requirements:
+  - Architecture must assume NO live integrations
+  - No real-time data feeds
+  - Full audit logging of: inputs, processing steps, outputs
+  - Sandbox environment only — no connection to production systems
+
+Enterprise Architect confirmed these are already built into the design:
+  - Manual data exports only
+  - Sandbox-only deployment
+  - Evidence-first output format
+  - Human validation gate before decision use
+
+DG summarized the principle:
+  "Augmentation with accountability."
+
+NOTE: Legal Counsel's written comments also requested documentation of data handling
+procedures and confirmation that no personal information will be processed in the prototype.
+Enterprise Architect to confirm in architecture document.
+
+
+------------------------------------------------------------
+AGENDA ITEM 4 — Strategic Value Assessment (09:18)
+------------------------------------------------------------
+
+PM Director on expected operational benefits:
+  - Reduced time spent manually reviewing documentation before governance reviews
+  - Earlier visibility into misalignment between documented commitments and actual
+    project status
+
+Technical Authority:
+  Even identifying what doesn't work in our environment has value — helps us scope
+  future tooling decisions more accurately.
+
+DG cautioned against overstating outcomes:
+  "We should measure success by demonstrated insight — not perfection. If it surfaces
+   one meaningful inconsistency that would otherwise have been missed, that's a
+   data point worth having."
+
+
+------------------------------------------------------------
+AGENDA ITEM 5 — Decision and Next Steps (09:22)
+------------------------------------------------------------
+
+DECISION (DG): Proceed with controlled prototype under the following guardrails:
+
+  GUARDRAIL 1: Evidence-first outputs — all surfaced items must cite source document
+               and include extracted evidence snippet before any interpretation
+
+  GUARDRAIL 2: No automation of decision authority — human validation required before
+               any AI-generated output is used to inform a governance decision
+
+  GUARDRAIL 3: Security and lifecycle documentation — threat model and ITSG-33
+               alignment documentation must be included in prototype deliverables
+
+  GUARDRAIL 4: Success measured by demonstrated insight — project team to define
+               minimum success criteria before prototype demonstration
+
+  "Let's move forward with disciplined experimentation."
+
+NEXT STEPS:
+  - Enterprise Architect: Circulate architecture design summary → March 10
+  - Technical Authority: Define minimum success criteria for demonstration → March 17
+  - IT Security: Confirm sandbox environment configuration meets audit requirements → March 14
+  - Privacy Advisor: Confirm no personal information processed in prototype dataset → March 12
+  - PM Director: Brief Steering Committee on governance approval → March 9
+
+Meeting adjourned at 09:35.
+
+Notes prepared by: PM Director's office
+Circulated for accuracy review: March 6, 2026

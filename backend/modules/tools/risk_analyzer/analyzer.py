@@ -84,6 +84,14 @@ async def gather_project_data(project_id: uuid.UUID, db: AsyncSession) -> Projec
     )
 
 
+_LABEL_TO_INT = {"low": 2, "medium": 3, "high": 4, "critical": 5}
+_INT_TO_LABEL = {1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "High"}
+
+
+def _parse_label(val: str) -> int:
+    return _LABEL_TO_INT.get(str(val).lower().strip(), 3)
+
+
 async def risk_modelling(
     context: ProjectContext,
     llm: LLMGateway,
@@ -92,59 +100,71 @@ async def risk_modelling(
     """LLM-based risk identification from project materials."""
     context_summary = _build_context_summary(context)
 
-    tools = None
-    if web_search:
-        tools = [{
-            "type": "function",
-            "function": {
-                "name": "web_search",
-                "description": "Search the web for industry risk benchmarks, vendor status, or regulatory updates.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"query": {"type": "string"}},
-                    "required": ["query"],
-                },
-            },
-        }]
+    system_prompt = """You are a senior project risk analyst preparing a formal risk register for a government project gate review.
+
+Analyze the project materials and identify ALL significant risks. For each risk, produce a structured entry matching a formal Business Case risk table.
+
+Return a JSON object with key "risks" containing an array. Each risk object must have:
+- "id": string like "RSK-1", "RSK-2", etc.
+- "title": short risk title (max 8 words, e.g. "Procurement Timeline Delay")
+- "description": full paragraph (2-4 sentences) describing the risk, its trigger, and potential consequence
+- "category": one of: technical, schedule, resource, scope, security, compliance
+- "probability": one of: Low, Medium, High
+- "impact": one of: Low, Medium, High
+- "affected_area": the project area most affected (e.g. "Deployment", "Data Migration", "Budget")
+- "mitigation_strategies": array of 3-5 specific mitigation actions (each a full sentence)
+- "source_documents": array of document filenames where evidence was found
+- "source_quotes": array of 1-3 direct quotes from the source materials supporting this risk
+- "confidence": float 0.0-1.0 (your confidence that this is a genuine risk based on evidence)
+
+Only include risks with clear evidence in the provided materials. Do not invent risks."""
 
     request = LLMRequest(
         messages=[
-            Message(role="system", content=(
-                "You are a senior project risk analyst. "
-                "Analyze the following project context and identify risks. "
-                "Return a JSON array of risk objects with fields: "
-                "id (string), description, category (technical|schedule|resource|scope), "
-                "likelihood (1-5), impact (1-5), confidence (0.0-1.0), "
-                "source_documents (list of filenames), source_quotes (list of text excerpts), mitigation."
-            )),
+            Message(role="system", content=system_prompt),
             Message(role="user", content=context_summary),
         ],
         config_name="primary",
         response_format="json",
-        max_tokens=3000,
-        tools=tools,
+        max_tokens=16000,   # qwen3 thinking models need large budget: ~8-12k thinking + ~3k JSON
+        temperature=0.3,
     )
 
     try:
         response = await llm.complete(request)
-        data = json.loads(response.content)
+        raw = response.content.strip()
+        # Strip markdown code fences if model wraps in ```json ... ```
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw)
         if isinstance(data, dict) and "risks" in data:
             data = data["risks"]
         risks = []
-        for item in (data if isinstance(data, list) else []):
-            likelihood = int(item.get("likelihood", 3))
-            impact = int(item.get("impact", 3))
+        for i, item in enumerate(data if isinstance(data, list) else []):
+            prob = item.get("probability") or "Medium"
+            imp = item.get("impact") or "Medium"
+            likelihood = _parse_label(prob)
+            impact = _parse_label(imp)
+            strategies = item.get("mitigation_strategies") or []
+            mitigation_text = "\n".join(f"- {s}" for s in strategies) if strategies else (item.get("mitigation") or "")
             risks.append(RiskItem(
-                id=item.get("id", str(uuid.uuid4())[:8]),
-                description=item.get("description", ""),
-                category=item.get("category", "general"),
+                id=item.get("id") or f"RSK-{i+1}",
+                title=item.get("title") or "",
+                description=item.get("description") or "",
+                category=item.get("category") or "general",
                 likelihood=likelihood,
                 impact=impact,
+                probability_label=_INT_TO_LABEL.get(likelihood, "Medium"),
+                impact_label=_INT_TO_LABEL.get(impact, "Medium"),
                 risk_score=round((likelihood * impact) / 25.0, 2),
-                confidence=float(item.get("confidence", 0.7)),
-                source_documents=item.get("source_documents", []),
-                source_quotes=item.get("source_quotes", []),
-                mitigation=item.get("mitigation", ""),
+                confidence=float(item.get("confidence") or 0.7),
+                affected_area=item.get("affected_area") or "",
+                source_documents=item.get("source_documents") or [],
+                source_quotes=item.get("source_quotes") or [],
+                mitigation=mitigation_text,
+                mitigation_strategies=strategies,
             ))
         return risks
     except Exception as e:
@@ -171,12 +191,19 @@ async def inconsistency_detection(
         request = LLMRequest(
             messages=[
                 Message(role="system", content=(
-                    "You are a document consistency analyst. "
-                    "Compare these two document excerpts and identify contradictions, "
-                    "scope drift, or gaps. Return JSON array with fields: "
-                    "id, type (contradiction|drift|gap), document_a (filename), passage_a, "
-                    "document_b (filename), passage_b, explanation, confidence (0.0-1.0), recommendation. "
-                    "Return empty array [] if no inconsistencies found."
+                    "You are a document consistency analyst for a government project review. "
+                    "Compare the two provided documents and identify any contradictions, scope drift, or undocumented gaps. "
+                    "Return a JSON object with key \"inconsistencies\" containing an array. "
+                    "Each item must have: "
+                    "id (string like INC-1), "
+                    "type (contradiction|drift|gap), "
+                    "document_a (filename), passage_a (exact quote from doc A), "
+                    "document_b (filename), passage_b (exact quote from doc B), "
+                    "explanation (2-3 sentences explaining the inconsistency and its project impact), "
+                    "confidence (0.0-1.0), "
+                    "recommendation (specific action to resolve). "
+                    "Only report inconsistencies clearly supported by the text. "
+                    "Return {\"inconsistencies\": []} if none found."
                 )),
                 Message(role="user", content=json.dumps({
                     "document_a": {"filename": doc_a["filename"], "type": doc_a["doc_type"], "text": doc_a["full_text"][:3000]},
@@ -185,24 +212,32 @@ async def inconsistency_detection(
             ],
             config_name="primary",
             response_format="json",
-            max_tokens=2000,
+            max_tokens=4000,
+            temperature=0.2,
         )
         try:
             response = await llm.complete(request)
-            data = json.loads(response.content)
+            raw = response.content.strip()
+            if not raw:
+                continue
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            data = json.loads(raw)
             if isinstance(data, dict) and "inconsistencies" in data:
                 data = data["inconsistencies"]
             for item in (data if isinstance(data, list) else []):
                 inconsistencies.append(InconsistencyItem(
-                    id=item.get("id", str(uuid.uuid4())[:8]),
-                    type=item.get("type", "contradiction"),
-                    document_a=item.get("document_a", doc_a["filename"]),
-                    passage_a=item.get("passage_a", ""),
-                    document_b=item.get("document_b", doc_b["filename"]),
-                    passage_b=item.get("passage_b", ""),
-                    explanation=item.get("explanation", ""),
-                    confidence=float(item.get("confidence", 0.6)),
-                    recommendation=item.get("recommendation", ""),
+                    id=item.get("id") or str(uuid.uuid4())[:8],
+                    type=item.get("type") or "contradiction",
+                    document_a=item.get("document_a") or doc_a["filename"],
+                    passage_a=item.get("passage_a") or "",
+                    document_b=item.get("document_b") or doc_b["filename"],
+                    passage_b=item.get("passage_b") or "",
+                    explanation=item.get("explanation") or "",
+                    confidence=float(item.get("confidence") or 0.6),
+                    recommendation=item.get("recommendation") or "",
                 ))
         except Exception as e:
             logger.error("Inconsistency detection failed for pair (%s, %s): %s",
@@ -216,30 +251,24 @@ async def generate_report(
     risks: list[RiskItem],
     inconsistencies: list[InconsistencyItem],
     context: ProjectContext,
+    llm: LLMGateway,
 ) -> RiskReport:
-    """Combine all findings into final report with overall confidence."""
+    """Combine all findings into final report with LLM-generated executive summary."""
     all_confidences = [r.confidence for r in risks] + [i.confidence for i in inconsistencies]
     overall_confidence = round(sum(all_confidences) / len(all_confidences), 2) if all_confidences else 0.0
 
+    high_count = sum(1 for r in risks if r.probability_label == "High" or r.impact_label == "High")
     max_risk_score = max((r.risk_score for r in risks), default=0.0)
-    if max_risk_score >= 0.8:
+    if max_risk_score >= 0.8 or high_count >= 3:
         overall_risk_level = "critical"
-    elif max_risk_score >= 0.6:
+    elif max_risk_score >= 0.6 or high_count >= 1:
         overall_risk_level = "high"
     elif max_risk_score >= 0.4:
         overall_risk_level = "medium"
     else:
         overall_risk_level = "low"
 
-    top_risks = sorted(risks, key=lambda r: r.risk_score, reverse=True)[:3]
-    exec_summary_parts = [
-        f"Project '{context.project_name}' analysis identified {len(risks)} risk(s) "
-        f"and {len(inconsistencies)} inconsistency/inconsistencies.",
-    ]
-    if top_risks:
-        exec_summary_parts.append(
-            "Top risks: " + "; ".join(r.description[:80] for r in top_risks) + "."
-        )
+    executive_summary = await _generate_executive_summary(context, risks, inconsistencies, llm)
 
     return RiskReport(
         report_id=uuid.uuid4(),
@@ -247,16 +276,71 @@ async def generate_report(
         generated_at=datetime.now(timezone.utc),
         overall_risk_level=overall_risk_level,
         overall_confidence=overall_confidence,
-        executive_summary=" ".join(exec_summary_parts),
+        executive_summary=executive_summary,
         risks=risks,
         inconsistencies=inconsistencies,
         documents_analyzed=[d["filename"] for d in context.documents],
         methodology_notes=(
-            "Phase 1: LLM-based risk identification from project documents, emails, and tasks. "
-            "Phase 2: Cross-document inconsistency detection via pairwise LLM comparison. "
-            "Confidence scores are LLM self-reported estimates."
+            "Risk identification: LLM analysis of project documents, emails, and tasks. "
+            "Inconsistency detection: Pairwise LLM comparison across all document pairs. "
+            "Output format aligned to government project gate review standard (Business Case risk table). "
+            "Confidence scores are LLM self-reported estimates based on evidence strength."
         ),
     )
+
+
+async def _generate_executive_summary(
+    context: ProjectContext,
+    risks: list[RiskItem],
+    inconsistencies: list[InconsistencyItem],
+    llm: LLMGateway,
+) -> str:
+    top_risks = sorted(risks, key=lambda r: r.risk_score, reverse=True)[:5]
+    risk_lines = "\n".join(
+        f"- {r.id} ({r.probability_label} probability / {r.impact_label} impact): {r.title or r.description[:80]}"
+        for r in top_risks
+    )
+    inc_count = len(inconsistencies)
+
+    prompt = f"""Write a concise executive summary (3-4 paragraphs) for a project risk analysis report.
+The summary should be suitable for a steering committee or project sponsor.
+
+Project: {context.project_name}
+Documents analyzed: {len(context.documents)}
+Total risks identified: {len(risks)}
+Cross-document inconsistencies found: {inc_count}
+
+Top risks:
+{risk_lines}
+
+The summary should:
+1. State the purpose of the analysis and what was reviewed
+2. Summarize the overall risk posture and most significant risks
+3. Highlight any critical inconsistencies between documents
+4. Conclude with a recommended course of action
+
+Write in formal government project management language. Do not use bullet points in the summary."""
+
+    try:
+        request = LLMRequest(
+            messages=[
+                Message(role="system", content="You are a senior project manager writing a formal risk analysis report for a government steering committee."),
+                Message(role="user", content=prompt),
+            ],
+            config_name="primary",
+            max_tokens=3000,
+            temperature=0.4,
+        )
+        response = await llm.complete(request)
+        return response.content.strip()
+    except Exception as e:
+        logger.error("Executive summary generation failed: %s", e)
+        top_risk_titles = "; ".join(r.title or r.description[:60] for r in top_risks)
+        return (
+            f"This risk analysis for project '{context.project_name}' reviewed {len(context.documents)} document(s) "
+            f"and identified {len(risks)} risk(s) and {inc_count} cross-document inconsistency/inconsistencies. "
+            f"Top risks: {top_risk_titles}. Review the detailed findings below."
+        )
 
 
 async def run_full_analysis(
@@ -269,7 +353,7 @@ async def run_full_analysis(
     context = await gather_project_data(project_id, db)
     risks = await risk_modelling(context, llm, web_search)
     inconsistencies = await inconsistency_detection(context, llm)
-    return await generate_report(project_id, risks, inconsistencies, context)
+    return await generate_report(project_id, risks, inconsistencies, context, llm)
 
 
 def _build_context_summary(context: ProjectContext) -> str:

@@ -1,0 +1,201 @@
+EMAIL THREAD EXPORT
+Project: Enterprise Data Integration Initiative
+Exported by: Sarah (PM)
+Date exported: March 10, 2026
+Classification: Unclassified | Non classifié
+Note: Personal contact details redacted per export policy
+
+========================================
+
+FROM: Mark (Infrastructure Lead)
+TO: Sarah (PM); Daniel (Technical Authority)
+DATE: March 9, 2026 — 4:47 PM
+SUBJECT: RE: Production environment — Cyber Ops update
+
+Sarah,
+
+Still no committed date from Cyber Ops. I followed up again this afternoon.
+Their response was that the configuration review is "in queue" but they cannot
+commit until their backlog is assessed this week.
+
+My concern: if we don't have a date by end of this week, we need to adjust
+the deployment planning timeline. I can't keep the infrastructure team on
+standby indefinitely.
+
+I'd recommend escalating through the DG office as discussed. I can prepare
+a brief summary of the dependency impact if that helps.
+
+Mark
+
+---
+
+FROM: Sarah (PM)
+TO: Mark (Infrastructure Lead); Daniel (Technical Authority)
+DATE: March 9, 2026 — 5:12 PM
+SUBJECT: RE: Production environment — Cyber Ops update
+
+Mark,
+
+Agreed. If no committed date by COB March 11, I'll escalate through
+PM Director to the DG office. Please prepare a one-paragraph summary of
+impact — I'll attach it to the escalation note.
+
+I'll also update R-01 in the risk register.
+
+Sarah
+
+---
+
+FROM: Daniel (Technical Authority)
+TO: Sarah (PM); Mark (Infrastructure Lead)
+DATE: March 9, 2026 — 5:31 PM
+SUBJECT: RE: Production environment — Cyber Ops update
+
+Worth flagging: the data migration dry-run (currently March 28) has a
+soft dependency on production sign-off. If sign-off slips past March 17,
+the dry-run will need to move.
+
+That would cascade to the April milestones. I don't want to raise this
+formally yet but we should have the revised schedule ready.
+
+Daniel
+
+========================================
+
+FROM: Alex (Change Lead)
+TO: Sarah (PM)
+DATE: March 8, 2026 — 11:22 AM
+SUBJECT: Team B — Update from stakeholder interviews
+
+Sarah,
+
+Completed 4 of 6 interviews with Team B members. Key themes:
+
+1. DATA CONCERN: Strong consensus that proceeding with migration while field
+   definition inconsistencies are unresolved is the primary objection. They
+   do not trust that post-implementation remediation will actually happen —
+   they've seen "we'll fix it later" commitments not materialize on previous
+   projects.
+
+2. PROCESS CONCERN: Two people specifically mentioned that they feel the
+   migration approach was finalized before their input was incorporated.
+   They were consulted but don't feel their feedback changed anything.
+
+3. POSITIVE SIGNAL: Team B lead is not opposed to the project — she's
+   opposed to the current timeline given the data state. If the scope
+   decision goes in favour of addressing inconsistencies, she indicated
+   Team B would "get on board fully."
+
+Recommendation: The scope decision (Issue 1 from last week) is directly
+linked to Team B re-engagement. A decision in favour of Option B
+(deferred remediation) will likely deepen disengagement. We should factor
+this into the steering committee recommendation.
+
+I'll complete the remaining 2 interviews tomorrow.
+
+Alex
+
+---
+
+FROM: Sarah (PM)
+TO: Alex (Change Lead)
+DATE: March 8, 2026 — 12:05 PM
+SUBJECT: RE: Team B — Update from stakeholder interviews
+
+Alex,
+
+This is really helpful — thank you. The link between the scope decision and
+Team B engagement is important context that I'll include in the options paper.
+
+Can you put together a one-page summary of Team B's position for the
+steering committee package? I'd like them to see the change management
+implications before they decide on scope.
+
+Deadline for the package is March 14.
+
+Sarah
+
+========================================
+
+FROM: Jason (Finance)
+TO: Sarah (PM)
+DATE: March 7, 2026 — 2:15 PM
+SUBJECT: Budget update — consulting variance
+
+Sarah,
+
+As discussed in the March 3 sync, I've done a preliminary pass on consulting
+costs. Here's where we are:
+
+- Approved consulting budget: $480,000
+- Actuals to date (March 7): $278,400 (58% consumed, 45% through project)
+- Primary driver of variance: Extended technical validation sessions in
+  February (requirements maturity issues — Daniel can speak to this)
+- Secondary driver: Two additional vendor sessions not in original plan
+
+Rough forecast to completion if pace continues: $520,000–$540,000
+That's $40,000–$60,000 over budget.
+
+I need to flag this formally. Options I can see:
+  a) Apply contingency reserve (we have $60K available)
+  b) Reduce consulting scope somewhere (discuss with Daniel)
+  c) Formally request budget amendment
+
+I'd suggest we discuss at the March 10 sync. I can have a more refined
+forecast by then.
+
+Jason
+
+---
+
+FROM: Sarah (PM)
+TO: Jason (Finance)
+DATE: March 7, 2026 — 3:02 PM
+SUBJECT: RE: Budget update — consulting variance
+
+Jason,
+
+Thanks for the early flag. Let's discuss at the March 10 sync.
+
+In the meantime — can you confirm whether the contingency reserve was
+approved for use in the project charter, or whether a separate approval
+is needed to access it? Want to know our options going in.
+
+I'll include the budget status in this week's status report (flagging as
+amber) so the steering committee has visibility.
+
+Sarah
+
+========================================
+
+FROM: Chloe (Data Migration Lead)
+TO: Sarah (PM); Daniel (Technical Authority)
+DATE: March 10, 2026 — 9:30 AM
+SUBJECT: Team B data discovery — interim findings
+
+Hi,
+
+Quick interim update before today's sync.
+
+I'm about 60% through Team B's legacy dataset discovery. The situation is
+worse than initially assessed:
+
+- At least 14 field definitions with naming conflicts vs. Team A
+- 3 fields where Team B has no equivalent record at all
+  (these appear to be data Team A generates that Team B never tracked)
+- Approximately 8,200 historical records that would need re-classification
+  if we align to a common schema
+
+I can have full numbers by March 17.
+
+One thing I want to flag separately: when I went back and re-read the
+migration plan (v1.2, approved January 22), it explicitly states
+"assumes data model alignment between source systems." That assumption
+appears to have been made without validation. I don't know who signed
+off on that assumption at the time, but I think the options paper for
+steering committee should acknowledge this.
+
+Chloe
+
+========================================
+END OF THREAD EXPORT

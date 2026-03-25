@@ -1,0 +1,61 @@
+METRO LINE 6 EXTENSION — CONSTRUCTION PHASE KICKOFF
+Meeting Minutes
+Date: March 18, 2026
+Location: Site Office, Station 3 (Harbourfront)
+Attendees: Yves Deschamps (Project Director), Sandra Okafor (Site Engineer), Tom Ling (Safety Officer), Marie-Claude Beaulieu (Procurement Lead), Kevin Abt (Subcontractor Liaison)
+
+---
+
+AGENDA ITEM 1 — GEOTECHNICAL UPDATE
+
+Sandra Okafor presented updated borehole results from Station 3. Three of the five boreholes hit unexpected clay-rich soil below 14m depth. This was not accounted for in the original foundation design.
+
+ACTION: Sandra Okafor to issue a formal Geotechnical Variance Notice (GVN-003) to the structural engineer by March 22, 2026.
+ACTION: Tom Ling to halt excavation below 12m at Station 3 pending receipt of structural engineer's revised pile specifications. Halt effective immediately.
+ACTION: Yves Deschamps to notify the client (City Transit Authority) of a potential 3-week schedule impact by end of day March 19, 2026.
+
+---
+
+AGENDA ITEM 2 — CONCRETE POUR SCHEDULE
+
+The planned concrete pour for the Station 3 platform slab is currently scheduled for April 4, 2026. Due to the geotechnical findings, this date is at risk.
+
+DECISION: Reschedule concrete pour to no earlier than April 28, 2026 (pending structural sign-off).
+ACTION: Marie-Claude Beaulieu to contact Ready-Mix supplier (Lafarge) to push the concrete delivery order by 24 days. Deadline: March 20, 2026.
+ACTION: Kevin Abt to notify affected subcontractors (MEP, waterproofing) of the revised slab pour date. Send written notice by March 21, 2026.
+
+---
+
+AGENDA ITEM 3 — VENTILATION SYSTEM PROCUREMENT (REF: ECO2241 Rev 3)
+
+The revised ventilation spec (ECO2241 Rev 3) requires a larger fan housing than previously tendered. The current preferred vendor (AeroTech HVAC) submitted a quote based on the old spec.
+
+ACTION: Marie-Claude Beaulieu to issue a Request for Revised Quote (RFRQ-009) to AeroTech HVAC covering the new fan housing dimensions by March 25, 2026.
+ACTION: Marie-Claude Beaulieu to identify two alternate HVAC vendors as backup in case AeroTech's revised quote exceeds budget. Report to Yves Deschamps by April 1, 2026.
+ACTION: Sandra Okafor to confirm shaft dimensions with the structural engineer before RFRQ-009 is issued. Confirm by March 23, 2026.
+
+---
+
+AGENDA ITEM 4 — SAFETY COMPLIANCE REVIEW
+
+Tom Ling flagged that the site's confined space entry log has not been updated since March 1, 2026. This is a regulatory non-compliance under OHS Regulation 835/91.
+
+ACTION: Tom Ling to audit all confined space entry records and bring them up to date by March 19, 2026 (tomorrow).
+ACTION: Tom Ling to schedule mandatory refresher training for all site personnel on confined space procedures. Training to be completed by April 11, 2026.
+DECISION: Any confined space entry without a current entry permit is suspended immediately until the log is compliant.
+
+---
+
+AGENDA ITEM 5 — BUDGET STATUS
+
+Current spend: $14.2M of $18.5M approved budget. Forecast at completion: $19.1M (variance of +$600K).
+
+ACTION: Yves Deschamps to prepare a Change Request (CR-006) for the $600K overrun and submit to client's Change Control Board by March 28, 2026.
+ACTION: Marie-Claude Beaulieu to identify $200K in procurement savings opportunities and present options to Yves Deschamps by March 26, 2026.
+
+---
+
+NEXT MEETING: March 25, 2026, 09:00, Site Office, Station 3.
+
+Minutes recorded by: Kevin Abt
+Approved by: Yves Deschamps

@@ -38,10 +38,19 @@ class LLMGateway:
         return await provider.embed(texts, config)
 
     async def _get_active_config(self, name: str) -> LLMConfig:
+        # Try exact name match first
         result = await self.db.execute(
             select(LLMConfig).where(LLMConfig.name == name, LLMConfig.is_active == True)
         )
         config = result.scalar_one_or_none()
+        if config is not None:
+            return config
+        # Fall back to any active config
+        result = await self.db.execute(
+            select(LLMConfig).where(LLMConfig.is_active == True).limit(1)
+        )
+        config = result.scalar_one_or_none()
         if config is None:
-            raise ValueError(f"No active LLM config named '{name}'. Configure one in Settings → LLM.")
+            raise ValueError("No active LLM config found. Configure one in Settings → LLM.")
+        logger.info("LLM config '%s' not found, using '%s' instead", name, config.name)
         return config

@@ -1,0 +1,112 @@
+ACTION ITEMS — Weekly Working Teams Sync
+Project: Enterprise Data Integration Initiative
+Meeting Date: March 3, 2026
+Recorded by: Sarah (Project Manager)
+Classification: Unclassified | Non classifié
+
+========================================
+OPEN ACTION ITEMS FROM THIS MEETING
+========================================
+
+[A-09] Document production security sign-off as a formal project dependency
+  Owner: Sarah
+  Due: March 5, 2026
+  Status: COMPLETE
+  Notes: Added to risk register as R-01. Escalation path documented.
+
+[A-10] Prepare scope options paper — legacy data standardization
+  Owner: Sarah
+  Due: March 14, 2026
+  Status: IN PROGRESS
+  Notes: Two options being assessed (expand scope vs. post-implementation remediation).
+         Requires steering committee decision. Cost/schedule impact analysis underway.
+
+[A-11] Confirm whether Team C has submitted or intends to submit a change request for custom reporting module
+  Owner: Daniel
+  Due: March 7, 2026
+  Status: COMPLETE — No CR submitted. Team C advised verbally not to proceed without CR.
+  Notes: Being monitored as potential scope risk R-03.
+
+[A-12] Prepare updated consulting cost forecast
+  Owner: Jason
+  Due: March 12, 2026
+  Status: NOT STARTED
+  Notes: Extended technical validation sessions driving variance. Quantification needed.
+
+[A-13] Develop Team B re-engagement plan
+  Owner: Alex
+  Due: March 14, 2026
+  Status: IN PROGRESS
+  Notes: Stakeholder interviews scheduled for week of March 9.
+         Core concern: discomfort with proceeding while data inconsistencies unresolved.
+         Linked to scope decision A-10.
+
+[A-14] Define post-launch operational support model (ownership, tiering, escalation)
+  Owner: Mark + Sarah
+  Due: March 21, 2026
+  Status: NOT STARTED
+  Notes: Charter mentions support but no detail. Must be resolved before deployment
+         discussions can advance. Operations assumed IT ownership — not agreed.
+
+
+========================================
+CARRY-OVER ITEMS FROM PREVIOUS MEETINGS
+========================================
+
+[A-06] Complete Team A legacy data field discovery and inventory
+  Owner: Chloe
+  Original Due: February 28, 2026
+  Revised Due: March 10, 2026
+  Status: COMPLETE
+  Notes: Discovery complete. Inconsistencies confirmed vs. Team B definitions.
+
+[A-07] Complete Team B legacy data field discovery and inventory
+  Owner: Chloe
+  Original Due: March 10, 2026
+  Revised Due: March 17, 2026
+  Status: IN PROGRESS
+  Notes: Slipped one week. Complexity higher than anticipated.
+
+[A-08] Obtain committed date from Cyber Ops for production security sign-off
+  Owner: Mark
+  Original Due: February 25, 2026
+  Revised Due: March 11, 2026
+  Status: OVERDUE — No committed date received
+  Notes: Escalation through DG office being considered. See R-01.
+
+
+========================================
+CLOSED ITEMS (FOR RECORD)
+========================================
+
+[A-01] Set up staging environment — CLOSED Feb 14
+[A-02] Complete initial architecture documentation — CLOSED Feb 21
+[A-03] Distribute stakeholder engagement plan — CLOSED Feb 28
+[A-04] Submit privacy impact preliminary assessment — CLOSED Mar 1
+[A-05] Confirm vendor licensing for sandbox tools — CLOSED Mar 3
+
+
+========================================
+DECISIONS RECORDED
+========================================
+
+DECISION-04 (March 3, 2026):
+  Legacy data standardization is NOT currently in scope.
+  Any expansion requires a formal change request with impact assessment.
+  No migration work on legacy field reconciliation to proceed until CR approved.
+  Documented by: Sarah
+
+DECISION-05 (March 3, 2026):
+  Custom reporting module raised by Team C is NOT approved.
+  No development to commence without a submitted and approved change request.
+  Documented by: Sarah
+
+
+========================================
+NEXT MEETING
+========================================
+
+  Date: March 10, 2026
+  Time: 10:00 AM EST
+  Location: Teams — link in calendar invite
+  Pre-read: Updated risk register + scope options paper (if ready)

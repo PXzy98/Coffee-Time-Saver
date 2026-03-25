@@ -14,6 +14,15 @@ class LLMConfigOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LLMConfigCreate(BaseModel):
+    name: str
+    provider: str
+    api_url: str
+    api_key: Optional[str] = None
+    model: str
+    is_active: bool = False
+
+
 class LLMConfigUpdate(BaseModel):
     provider: Optional[str] = None
     api_url: Optional[str] = None

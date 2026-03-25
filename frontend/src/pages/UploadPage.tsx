@@ -7,7 +7,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/PageS
 import { Panel } from '../components/common/Panel';
 import { useWsEvent } from '../hooks/useWsEvent';
 import { useUiStore } from '../store/uiStore';
-import type { DocumentOut, ProjectOut } from '../types';
+import type { DocumentOut, ProjectOut, ProjectSuggestionPayload } from '../types';
 import { formatDate } from '../utils/format';
 
 interface UploadQueueItem {
@@ -37,6 +37,7 @@ export function UploadPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [projectSuggestion, setProjectSuggestion] = useState<ProjectSuggestionPayload | null>(null);
 
   const activeQueueItems = useMemo(
     () => queue.filter((item) => item.documentId && !['completed', 'failed'].includes(item.status)),
@@ -127,6 +128,15 @@ export function UploadPage() {
     ),
   );
 
+  useWsEvent(
+    useCallback((event) => {
+      if (event.type !== 'project.suggestion') {
+        return;
+      }
+      setProjectSuggestion(event.payload as ProjectSuggestionPayload);
+    }, []),
+  );
+
   function addFiles(files: FileList | File[]) {
     const nextItems = Array.from(files).map((file) => ({
       id: makeQueueId(file),
@@ -209,6 +219,46 @@ export function UploadPage() {
           <p>{t('upload.subtitle')}</p>
         </div>
       </header>
+
+      {projectSuggestion ? (
+        <div className="suggestion-banner">
+          <div className="suggestion-banner-content">
+            <p className="suggestion-banner-title">
+              {projectSuggestion.match_type === 'existing'
+                ? `Suggested project: "${projectSuggestion.project_name}"`
+                : `New project suggested: "${projectSuggestion.project_name}"`}
+            </p>
+            <p className="suggestion-banner-detail">
+              {projectSuggestion.reason} &nbsp;
+              <span className="suggestion-confidence">
+                ({Math.round(projectSuggestion.confidence * 100)}% confident)
+              </span>
+            </p>
+          </div>
+          <div className="suggestion-banner-actions">
+            {projectSuggestion.match_type === 'existing' && projectSuggestion.project_id ? (
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => {
+                  setProjectId(projectSuggestion.project_id!);
+                  setProjectSuggestion(null);
+                  pushToast({ tone: 'info', title: `Project set to "${projectSuggestion.project_name}"` });
+                }}
+              >
+                Accept
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setProjectSuggestion(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {loading ? <LoadingState title={t('common.loading')} /> : null}
 
