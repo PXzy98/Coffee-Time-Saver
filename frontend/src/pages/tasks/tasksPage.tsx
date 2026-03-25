@@ -2,9 +2,9 @@ import { alpha } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import MainGrid from '../../components/MainGrid';
+import Typography from '@mui/material/Typography';
 
-export default function Dashboard() {
+export default function TasksPage() {
   return (
      <>
       <CssBaseline enableColorScheme />
@@ -23,7 +23,9 @@ export default function Dashboard() {
           })}
         >
           <Stack spacing={2} sx={{alignItems: 'center', mx: 3, pb: 5, mt: { xs: 8, md: 0 },}}>
-            <MainGrid />
+            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+              Tasks
+            </Typography>
           </Stack>
         </Box>
       </Box>
