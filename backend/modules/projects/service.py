@@ -41,6 +41,12 @@ class ProjectService:
             raise ForbiddenError("Access denied")
         return project
 
+    async def _get_with_members(self, project_id: uuid.UUID) -> Project:
+        result = await self.db.execute(
+            select(Project).options(selectinload(Project.members)).where(Project.id == project_id)
+        )
+        return result.scalar_one()
+
     async def create(self, data: dict, owner: User) -> Project:
         project = Project(
             owner_id=owner.id,
@@ -51,8 +57,7 @@ class ProjectService:
         )
         self.db.add(project)
         await self.db.commit()
-        await self.db.refresh(project)
-        return project
+        return await self._get_with_members(project.id)
 
     async def update(self, project_id: uuid.UUID, data: dict) -> Project:
         result = await self.db.execute(select(Project).where(Project.id == project_id))
@@ -63,8 +68,7 @@ class ProjectService:
             if val is not None:
                 setattr(project, "metadata_" if key == "metadata" else key, val)
         await self.db.commit()
-        await self.db.refresh(project)
-        return project
+        return await self._get_with_members(project_id)
 
     async def set_shared(self, project_id: uuid.UUID, is_shared: bool) -> Project:
         result = await self.db.execute(select(Project).where(Project.id == project_id))
@@ -73,8 +77,7 @@ class ProjectService:
             raise NotFoundError("Project not found")
         project.is_shared = is_shared
         await self.db.commit()
-        await self.db.refresh(project)
-        return project
+        return await self._get_with_members(project_id)
 
     def _can_read(self, project: Project, user: User) -> bool:
         if project.is_shared:
