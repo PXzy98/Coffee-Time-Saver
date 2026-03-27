@@ -84,6 +84,40 @@ async def gather_project_data(project_id: uuid.UUID, db: AsyncSession) -> Projec
     )
 
 
+import re
+
+
+def _extract_json(raw: str) -> dict | list | None:
+    """Robustly extract JSON from LLM output that may contain thinking/reasoning text."""
+    raw = raw.strip()
+    # 1. Strip markdown code fences: ```json ... ```
+    fence_match = re.search(r"```(?:json)?\s*\n?(.*?)```", raw, re.DOTALL)
+    if fence_match:
+        raw = fence_match.group(1).strip()
+    # 2. If still not valid JSON, find the first { or [ and last } or ]
+    if raw and raw[0] not in ('{', '['):
+        start = min(
+            (raw.find(c) for c in ('{', '[') if raw.find(c) != -1),
+            default=-1,
+        )
+        if start == -1:
+            return None
+        raw = raw[start:]
+    if not raw:
+        return None
+    # Find matching end bracket
+    open_char = raw[0]
+    close_char = '}' if open_char == '{' else ']'
+    end = raw.rfind(close_char)
+    if end == -1:
+        return None
+    raw = raw[:end + 1]
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
 _LABEL_TO_INT = {"low": 2, "medium": 3, "high": 4, "critical": 5}
 _INT_TO_LABEL = {1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "High"}
 
@@ -132,13 +166,10 @@ Only include risks with clear evidence in the provided materials. Do not invent 
 
     try:
         response = await llm.complete(request)
-        raw = response.content.strip()
-        # Strip markdown code fences if model wraps in ```json ... ```
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        data = json.loads(raw)
+        data = _extract_json(response.content)
+        if data is None:
+            logger.error("Risk modelling: failed to extract JSON from LLM response (length=%d)", len(response.content))
+            return []
         if isinstance(data, dict) and "risks" in data:
             data = data["risks"]
         risks = []
@@ -217,14 +248,13 @@ async def inconsistency_detection(
         )
         try:
             response = await llm.complete(request)
-            raw = response.content.strip()
-            if not raw:
+            if not response.content.strip():
                 continue
-            if raw.startswith("```"):
-                raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
-            data = json.loads(raw)
+            data = _extract_json(response.content)
+            if data is None:
+                logger.warning("Inconsistency detection: failed to extract JSON for pair (%s, %s)",
+                               doc_a["filename"], doc_b["filename"])
+                continue
             if isinstance(data, dict) and "inconsistencies" in data:
                 data = data["inconsistencies"]
             for item in (data if isinstance(data, list) else []):
@@ -252,6 +282,7 @@ async def generate_report(
     inconsistencies: list[InconsistencyItem],
     context: ProjectContext,
     llm: LLMGateway,
+    model_name: str = "",
 ) -> RiskReport:
     """Combine all findings into final report with LLM-generated executive summary."""
     all_confidences = [r.confidence for r in risks] + [i.confidence for i in inconsistencies]
@@ -286,6 +317,7 @@ async def generate_report(
             "Output format aligned to government project gate review standard (Business Case risk table). "
             "Confidence scores are LLM self-reported estimates based on evidence strength."
         ),
+        model_name=model_name,
     )
 
 
@@ -350,10 +382,17 @@ async def run_full_analysis(
     web_search: bool = False,
 ) -> RiskReport:
     """Main entry point. Orchestrates all steps sequentially."""
+    # Resolve the active LLM config to record model name in the report
+    try:
+        config = await llm._get_active_config("primary")
+        model_name = f"{config.provider} / {config.model}"
+    except Exception:
+        model_name = ""
+
     context = await gather_project_data(project_id, db)
     risks = await risk_modelling(context, llm, web_search)
     inconsistencies = await inconsistency_detection(context, llm)
-    return await generate_report(project_id, risks, inconsistencies, context, llm)
+    return await generate_report(project_id, risks, inconsistencies, context, llm, model_name=model_name)
 
 
 def _build_context_summary(context: ProjectContext) -> str:

@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     BRIEFING_STRATEGY: Literal["template", "llm"] = "template"
 
     # CORS
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # LLM key encryption
     ENCRYPTION_KEY: str = "change-me-32-bytes-key-for-fernet"

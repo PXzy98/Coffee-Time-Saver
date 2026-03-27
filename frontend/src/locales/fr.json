@@ -107,6 +107,8 @@
     "subtitle": "Rendu à partir des modules backend activés.",
     "runAnalysis": "Lancer l'analyse",
     "includeWebSearch": "Inclure la recherche web",
+    "currentModel": "Modèle LLM actuel",
+    "noModelConfigured": "Aucun modèle actif configuré",
     "reportStatus": "Statut du rapport",
     "downloadPdf": "Télécharger en PDF",
     "downloadDocx": "Télécharger en DOCX",

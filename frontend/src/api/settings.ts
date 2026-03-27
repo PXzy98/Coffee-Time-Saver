@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type {
   EmailBotConfigOut,
   EmailBotConfigUpdate,
+  LLMConfigCreate,
   LLMConfigOut,
   LLMConfigUpdate,
   UserAdminOut,
@@ -10,6 +11,16 @@ import type {
 
 export async function listLlmConfigs(): Promise<LLMConfigOut[]> {
   const response = await apiClient.get<LLMConfigOut[]>('/api/settings/llm');
+  return response.data;
+}
+
+export async function getActiveLlmConfig(): Promise<LLMConfigOut | null> {
+  const response = await apiClient.get<{ config: LLMConfigOut | null }>('/api/settings/llm/active');
+  return response.data.config;
+}
+
+export async function createLlmConfig(payload: LLMConfigCreate): Promise<LLMConfigOut> {
+  const response = await apiClient.post<LLMConfigOut>('/api/settings/llm', payload);
   return response.data;
 }
 
@@ -22,6 +33,14 @@ export async function testLlmConfig(payload: LLMConfigUpdate): Promise<{ status:
   const response = await apiClient.post<{ status: string; response?: string; detail?: string }>(
     '/api/settings/llm/test',
     payload,
+  );
+  return response.data;
+}
+
+export async function testLlmConfigById(configId: number): Promise<{ status: string; response?: string; detail?: string }> {
+  const response = await apiClient.post<{ status: string; response?: string; detail?: string }>(
+    `/api/settings/llm/test?config_id=${configId}`,
+    {},
   );
   return response.data;
 }

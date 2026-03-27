@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { useTranslation } from 'react-i18next';
 import { getApiErrorMessage } from '../api/client';
 import { listProjects } from '../api/projects';
+import { getActiveLlmConfig } from '../api/settings';
 import { downloadRiskReport, getRiskReport, getRiskStatus, listTools, runRiskAnalysis } from '../api/tools';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/PageState';
 import { Panel } from '../components/common/Panel';
 import { RiskReportView } from '../components/tools/RiskReportView';
 import { useWsEvent } from '../hooks/useWsEvent';
 import { useUiStore } from '../store/uiStore';
-import type { ProjectOut, RiskReport, RunStatusResponse, ToolRegistryItem } from '../types';
+import type { LLMConfigOut, ProjectOut, RiskReport, RunStatusResponse, ToolRegistryItem } from '../types';
 
 export function ToolsPage() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export function ToolsPage() {
   const [running, setRunning] = useState(false);
   const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'docx' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeLlm, setActiveLlm] = useState<LLMConfigOut | null>(null);
 
   const selectedTool = useMemo(
     () => tools.find((tool) => tool.slug === selectedToolSlug) ?? null,
@@ -42,6 +44,12 @@ export function ToolsPage() {
       setProjects(projectData);
       if (!selectedToolSlug && toolData.length) {
         setSelectedToolSlug(toolData[0].slug);
+      }
+      // Load active LLM config for display
+      try {
+        setActiveLlm(await getActiveLlmConfig());
+      } catch {
+        // ignore if unavailable
       }
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error));
@@ -230,6 +238,11 @@ export function ToolsPage() {
                     <button type="submit" className="primary-button" disabled={running}>
                       {running ? t('common.loading') : t('tools.runAnalysis')}
                     </button>
+                  </div>
+
+                  <div className="status-box">
+                    <p className="status-box-label">{t('tools.currentModel')}</p>
+                    <strong>{activeLlm ? `${activeLlm.provider} / ${activeLlm.model}` : t('tools.noModelConfigured')}</strong>
                   </div>
 
                   <div className="status-box">

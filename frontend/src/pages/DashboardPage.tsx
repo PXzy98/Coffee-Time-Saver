@@ -23,15 +23,19 @@ export function DashboardPage() {
 
   const loadData = useCallback(async () => {
     setErrorMessage(null);
-    try {
-      const [dashboardResponse, briefingResponse] = await Promise.all([getDashboard(), getTodayBriefing()]);
-      setDashboard(dashboardResponse);
-      setBriefing(briefingResponse);
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
-    } finally {
-      setLoading(false);
+    const [dashboardResult, briefingResult] = await Promise.allSettled([getDashboard(), getTodayBriefing()]);
+
+    if (dashboardResult.status === 'fulfilled') {
+      setDashboard(dashboardResult.value);
+    } else {
+      setErrorMessage(getApiErrorMessage(dashboardResult.reason));
     }
+
+    if (briefingResult.status === 'fulfilled') {
+      setBriefing(briefingResult.value);
+    }
+
+    setLoading(false);
   }, []);
 
   useWsEvent(
@@ -84,10 +88,12 @@ export function DashboardPage() {
         />
       ) : null}
 
+      {!loading || briefing ? (
+        <BriefingCard title={t('dashboard.briefing')} briefing={briefing} locale={locale} loading={loading && !briefing} />
+      ) : null}
+
       {dashboard ? (
         <>
-          <BriefingCard title={t('dashboard.briefing')} briefing={briefing} locale={locale} loading={loading && !briefing} />
-
           <Panel title={t('dashboard.metrics')}>
             <div className="panel-body padded-panel">
               <MetricsGrid metrics={dashboard.metrics} locale={locale} />

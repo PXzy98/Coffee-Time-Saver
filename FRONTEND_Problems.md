@@ -8,7 +8,7 @@
 ## Confirmed Problems
 
 ### 1. `POST /api/tasks` returns `500` during task creation
-- Status: confirmed by real API call
+- Status: fixed
 - Backend files:
   - `backend/modules/tasks/router.py`
   - `backend/core/websocket.py`
@@ -22,9 +22,13 @@
   - Frontend "Add task" will appear to fail.
   - The task may already be persisted even though the API response is `500`.
   - Frontend state and backend state can become inconsistent after submission.
+- Recheck result:
+  - Re-tested with a real `POST /api/tasks`
+  - Request now succeeds
+  - Router now serializes task ids as strings before publish
 
 ### 2. Local Vite frontend is blocked by backend CORS policy
-- Status: confirmed by preflight requests
+- Status: runtime-fixed
 - Backend file:
   - `backend/config.py`
 - Frontend file:
@@ -37,9 +41,18 @@
   - `Origin: http://localhost:5173` -> `Disallowed CORS origin`
 - User-facing impact:
   - Running `npm run dev` for the frontend will fail to call backend APIs in the browser unless CORS is adjusted.
+- Recheck result:
+  - Current `backend/.env` includes:
+    - `http://localhost:5173`
+    - `http://127.0.0.1:5173`
+  - Re-tested preflight for `http://localhost:5173`
+  - Current runtime returns `200`
+- Important note:
+  - Default code in `backend/config.py` still only lists `http://localhost:3000`
+  - So this is fixed in the current environment, not in the code default
 
 ### 3. Frontend sample env points to `localhost:8000`, which was not stable in this environment
-- Status: observed in this machine during check
+- Status: fixed
 - Frontend file:
   - `frontend/.env.example`
 - What happens:
@@ -51,6 +64,9 @@
   - On this machine, frontend may fail to connect if using the sample env values unchanged.
 - Note:
   - This is environment-specific risk, not a confirmed application logic bug.
+- Recheck result:
+  - `frontend/.env.example` now points to `127.0.0.1:8000`
+  - The sample file now matches the working local setup used in this check
 
 ## Verified Working Read Paths
 - `GET /health`
@@ -66,6 +82,12 @@
 - `GET /api/settings/email`
 - `GET /api/settings/users`
 - WebSocket authenticated connection to `/ws` could be established
+
+## Rechecked Write / Mutation Paths
+- `POST /api/tasks`
+  - rechecked
+  - succeeds now
+- Temporary recheck task was deleted after verification
 
 ## Not Checked in This Pass
 - File upload flow

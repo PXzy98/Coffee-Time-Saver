@@ -1,0 +1,219 @@
+<mxfile host="drawio-plugin" modified="2026-03-26T04:46:12.383Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="22.1.22" etag="JejLywAidAMI94D32tiu" type="embed">
+  <diagram id="architecture" name="Coffee Time Saver Architecture">
+    <mxGraphModel dx="937" dy="856" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Coffee Time Saver — System Architecture" style="text;html=1;fontSize=24;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#1a1a2e;" parent="1" vertex="1">
+          <mxGeometry x="350" y="-30" width="700" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Bilingual (EN/FR) Daily PM Assistant  |  React + FastAPI + PostgreSQL + Celery" style="text;html=1;fontSize=13;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="350" y="10" width="700" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="user" value="PM User&#xa;(Browser)" style="shape=mxgraph.basic.smiley;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="650" y="50" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;arcSize=8;verticalAlign=top;fontSize=12;fontStyle=1;dashed=0;" parent="1" vertex="1">
+          <mxGeometry x="180" y="140" width="860" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_title" value="Frontend  —  React 18 + TypeScript + Vite  (port 5173)" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=middle;fontColor=#2e5090;" parent="1" vertex="1">
+          <mxGeometry x="200" y="145" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_pages" value="&lt;b&gt;Pages &amp; Components&lt;/b&gt;&#xa;─────────────&#xa;Dashboard (BriefingCard,&#xa;  MetricsGrid, ActivityFeed)&#xa;Projects | Tasks&#xa;File Upload | Settings&#xa;Tools (RiskReportView)&#xa;Layout (Sidebar, TopBar,&#xa;  ProtectedRoute)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="200" y="178" width="200" height="122" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_store" value="&lt;b&gt;Zustand Store&lt;/b&gt;&#xa;───────&#xa;authStore&#xa;uiStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="420" y="178" width="120" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_hooks" value="&lt;b&gt;Hooks&lt;/b&gt;&#xa;──────&#xa;useWebSocket&#xa;useWsEvent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="420" y="280" width="120" height="73" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_i18n" value="&lt;b&gt;i18n&lt;/b&gt;&#xa;en.json&#xa;fr.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="560" y="178" width="80" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_api" value="&lt;b&gt;API Client Layer (Axios)&lt;/b&gt;&#xa;────────────────&#xa;auth · dashboard · tasks · projects&#xa;briefing · files · settings · tools&#xa;+ JWT interceptor + refresh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="660" y="178" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_ws" value="&lt;b&gt;WebSocket&lt;/b&gt;&#xa;Real-time push" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="660" y="275" width="120" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_types" value="&lt;b&gt;Types&lt;/b&gt;&#xa;TS defs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="560" y="248" width="80" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;fontSize=9;" parent="1" source="fe_pages" target="fe_store" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;fontSize=9;" parent="1" source="fe_pages" target="fe_api" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;fontSize=9;" parent="1" source="fe_hooks" target="fe_ws" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_user_fe" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;fontColor=#888;fontSize=10;" parent="1" source="user" target="fe_container" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;arcSize=6;verticalAlign=top;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="180" y="430" width="860" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="be_title" value="Backend  —  FastAPI + Python 3.12 + SQLAlchemy Async  (port 8000)" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=middle;fontColor=#2d6a2e;" parent="1" vertex="1">
+          <mxGeometry x="200" y="435" width="550" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="be_core" value="&lt;b&gt;Core Infrastructure&lt;/b&gt;&#xa;─────────────&#xa;Auth (JWT / RBAC)&#xa;  jwt · password&#xa;  dependencies · providers&#xa;Database (async engine)&#xa;WebSocket Manager&#xa;Exception Handlers&#xa;Audit Logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="200" y="468" width="170" height="122" as="geometry" />
+        </mxCell>
+        <mxCell id="be_modules" value="&lt;b&gt;Business Modules&lt;/b&gt; (each: router + service + schemas)&#xa;───────────────────────────&#xa;auth         — login / register / refresh / RBAC&#xa;projects    — project + membership CRUD&#xa;tasks         — CRUD + pluggable sorter (strategy)&#xa;dashboard — aggregation for daily view&#xa;briefing    — daily briefing gen (template → LLM)&#xa;settings    — admin LLM config UI&#xa;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="390" y="468" width="370" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="be_file" value="&lt;b&gt;File Processing&lt;/b&gt;&#xa;────────&#xa;PDF parser&#xa;DOCX parser&#xa;XLSX parser&#xa;TXT parser&#xa;Doc Intelligence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="390" y="612" width="130" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="be_ingest" value="&lt;b&gt;Ingestion Pipeline&lt;/b&gt;&#xa;──────────&#xa;Chunker&#xa;Language Detect&#xa;Structurer (regex/LLM)&#xa;Embedder (1536-dim)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="535" y="612" width="160" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="be_llm" value="&lt;b&gt;LLM Gateway&lt;/b&gt;&#xa;──────&#xa;OpenAI&#xa;Claude&#xa;Ollama" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="780" y="468" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="be_email" value="&lt;b&gt;Email Bot&lt;/b&gt;&#xa;──────&#xa;IMAP Client&#xa;Processor&#xa;Task Extraction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="900" y="468" width="120" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="be_tools" value="&lt;b&gt;Tools Registry&lt;/b&gt;&#xa;(auto-discover)&#xa;──────────&#xa;Risk Analyzer&#xa;(Phase 2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="900" y="580" width="120" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="be_models" value="&lt;b&gt;ORM Models (14 tables)&lt;/b&gt;&#xa;────────────────&#xa;User · Role · UserRole&#xa;Permission · RolePermission&#xa;Project · ProjectMember&#xa;Task · Document · DocumentChunk&#xa;DailyBriefing · Email&#xa;EmailAttachment · AuditLog&#xa;LLMConfig · ToolModule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="200" y="635" width="175" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="be_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontSize=9;" parent="1" source="be_file" target="be_ingest" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be_e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;fontSize=9;" parent="1" source="be_modules" target="be_llm" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_rest" value="REST API" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#333;strokeWidth=2;fontColor=#333;fontSize=11;fontStyle=1;" parent="1" source="fe_api" target="be_modules" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="790" y="400" />
+              <mxPoint x="575" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_ws_be" value="WebSocket" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;strokeWidth=2;fontColor=#9673a6;fontSize=11;fontStyle=1;dashed=1;" parent="1" source="fe_ws" target="be_core" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="410" />
+              <mxPoint x="285" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="celery_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;arcSize=10;" parent="1" vertex="1">
+          <mxGeometry x="180" y="830" width="500" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="celery_title" value="Celery Workers + Beat (async)" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=middle;fontColor=#7a5c00;" parent="1" vertex="1">
+          <mxGeometry x="200" y="835" width="350" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="celery_file" value="&lt;b&gt;file_tasks&lt;/b&gt;&#xa;parse &amp; extract" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="200" y="870" width="105" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="celery_embed" value="&lt;b&gt;embedding_tasks&lt;/b&gt;&#xa;chunk → vector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="318" y="870" width="115" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="celery_brief" value="&lt;b&gt;briefing_tasks&lt;/b&gt;&#xa;daily generation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="446" y="870" width="110" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="celery_email" value="&lt;b&gt;email_tasks&lt;/b&gt;&#xa;IMAP polling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="570" y="870" width="105" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e_be_celery" value="dispatch async tasks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d79b00;strokeWidth=1.5;fontColor=#7a5c00;fontSize=10;dashed=1;" parent="1" source="be_container" target="celery_container" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="&lt;b&gt;PostgreSQL 16 + pgvector&lt;/b&gt;&#xa;──────────────&#xa;14 tables · UUID PKs&#xa;vector(1536) IVFFlat&#xa;Bilingual _en / _fr cols&#xa;Soft delete (status field)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=center;verticalAlign=middle;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="780" y="835" width="190" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" value="&lt;b&gt;Redis 7&lt;/b&gt;&#xa;Cache +&#xa;Celery Broker" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;verticalAlign=middle;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1010" y="835" width="120" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="e_be_pg" value="SQLAlchemy&#xa;async" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;fontColor=#4472c4;fontSize=10;fontStyle=0;" parent="1" source="be_models" target="pg" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_celery_pg" value="write results" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontColor=#4472c4;fontSize=10;" parent="1" source="celery_container" target="pg" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_llm" value="&lt;b&gt;LLM Providers&lt;/b&gt;&#xa;OpenAI / Claude / Ollama" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="480" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_imap" value="&lt;b&gt;Mail Server&lt;/b&gt;&#xa;IMAP" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="590" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e_llm_ext" value="API calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;strokeWidth=1.5;fontColor=#7a5c00;fontSize=10;" parent="1" source="be_llm" target="ext_llm" edge="1">
+          <mxGeometry x="0.8958" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_email_ext" value="IMAP poll" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;strokeWidth=1.5;fontColor=#7a5c00;fontSize=10;" parent="1" source="be_email" target="ext_imap" edge="1">
+          <mxGeometry x="-0.5888" y="5" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="docker_label" value="docker-compose  (6 services)" style="text;html=1;fontSize=12;fontStyle=3;align=right;verticalAlign=middle;fontColor=#999;rotation=0;" parent="1" vertex="1">
+          <mxGeometry x="950" y="935" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;strokeWidth=1;dashed=1;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="140" width="200" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;fontSize=12;fontStyle=0;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="145" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" parent="1" vertex="1">
+          <mxGeometry x="1085" y="175" width="20" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" value="Frontend" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="172" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" parent="1" vertex="1">
+          <mxGeometry x="1085" y="200" width="20" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" value="Backend" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="197" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;" parent="1" vertex="1">
+          <mxGeometry x="1085" y="225" width="20" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" value="Celery Workers" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="222" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;size=4;fontSize=9;" parent="1" vertex="1">
+          <mxGeometry x="1085" y="250" width="20" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4t" value="Data Store" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="249" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" parent="1" vertex="1">
+          <mxGeometry x="1080" y="278" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5t" value="External Service" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="278" width="110" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6" value="" style="endArrow=classic;html=1;strokeColor=#333;strokeWidth=2;dashed=0;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1085" y="316" as="sourcePoint" />
+            <mxPoint x="1105" y="316" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg6t" value="REST / sync" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="306" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg7" value="" style="endArrow=classic;html=1;strokeColor=#9673a6;strokeWidth=2;dashed=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1085" y="336" as="sourcePoint" />
+            <mxPoint x="1105" y="336" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg7t" value="WebSocket / async" style="text;html=1;fontSize=10;align=left;" parent="1" vertex="1">
+          <mxGeometry x="1113" y="326" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="strategy_note" value="⚙ Strategy Pattern&#xa;────────────────&#xa;Task Sorting: hardcoded → LLM&#xa;File Parsing: pymupdf → ocr&#xa;Structuring: regex → LLM&#xa;Briefing Gen: template → LLM" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#ffffcc;strokeColor=#cccc00;fontSize=10;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" parent="1" vertex="1">
+          <mxGeometry x="710" y="630" width="180" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

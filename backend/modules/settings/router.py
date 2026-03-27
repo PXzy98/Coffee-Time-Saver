@@ -1,5 +1,6 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -22,6 +23,28 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 # LLM Config
 # ---------------------------------------------------------------------------
 
+@router.get("/llm/active")
+async def get_active_llm_config(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the currently active LLM config (available to all authenticated users)."""
+    # Try name="primary" first (same logic as LLMGateway)
+    result = await db.execute(
+        select(LLMConfig).where(LLMConfig.name == "primary", LLMConfig.is_active == True)
+    )
+    config = result.scalar_one_or_none()
+    if config is None:
+        # Fall back to any active config
+        result = await db.execute(
+            select(LLMConfig).where(LLMConfig.is_active == True).limit(1)
+        )
+        config = result.scalar_one_or_none()
+    if config is None:
+        return {"config": None}
+    return {"config": LLMConfigOut.model_validate(config)}
+
+
 @router.get("/llm", response_model=list[LLMConfigOut])
 async def list_llm_configs(
     current_user: User = Depends(require_role("admin")),
@@ -38,6 +61,10 @@ async def create_llm_config(
     db: AsyncSession = Depends(get_db),
 ):
     config = LLMConfig(**body.model_dump())
+    # Ensure only one config is active at a time
+    if config.is_active:
+        from sqlalchemy import update as sa_update
+        await db.execute(sa_update(LLMConfig).values(is_active=False))
     db.add(config)
     await db.commit()
     await db.refresh(config)
@@ -57,8 +84,17 @@ async def update_llm_config(
     config = result.scalar_one_or_none()
     if config is None:
         raise HTTPException(status_code=404, detail="LLM config not found")
-    for key, val in body.model_dump(exclude_none=True).items():
+    update_data = body.model_dump(exclude_none=True)
+    for key, val in update_data.items():
         setattr(config, key, val)
+    # Ensure only one config is active at a time
+    if update_data.get("is_active"):
+        from sqlalchemy import update as sa_update
+        await db.execute(
+            sa_update(LLMConfig)
+            .where(LLMConfig.id != config_id)
+            .values(is_active=False)
+        )
     await db.commit()
     await db.refresh(config)
     await audit_log(db, action="settings.llm.update", entity_type="llm_config",
@@ -69,22 +105,30 @@ async def update_llm_config(
 @router.post("/llm/test")
 async def test_llm_config(
     body: LLMConfigUpdate,
+    config_id: Optional[int] = Query(None),
     current_user: User = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Test an LLM connection with the provided config values."""
-    from core.models import LLMConfig as LLMConfigModel
-    test_config = LLMConfigModel(
-        name="test",
-        provider=body.provider or "openai",
-        api_url=body.api_url or "",
-        api_key=body.api_key,
-        model=body.model or "gpt-4o-mini",
-    )
+    """Test an LLM connection. If config_id is provided, use stored config from DB."""
     from modules.llm_gateway.providers.openai_provider import OpenAIProvider
     from modules.llm_gateway.providers.claude_provider import ClaudeProvider
     from modules.llm_gateway.providers.ollama_provider import OllamaProvider
     from modules.llm_gateway.schemas import LLMRequest, Message
+
+    if config_id is not None:
+        result = await db.execute(select(LLMConfig).where(LLMConfig.id == config_id))
+        test_config = result.scalar_one_or_none()
+        if test_config is None:
+            raise HTTPException(status_code=404, detail="LLM config not found")
+    else:
+        from core.models import LLMConfig as LLMConfigModel
+        test_config = LLMConfigModel(
+            name="test",
+            provider=body.provider or "openai",
+            api_url=body.api_url or "",
+            api_key=body.api_key,
+            model=body.model or "gpt-4o-mini",
+        )
 
     providers = {"openai": OpenAIProvider(), "claude": ClaudeProvider(), "ollama": OllamaProvider()}
     provider = providers.get(test_config.provider, OpenAIProvider())

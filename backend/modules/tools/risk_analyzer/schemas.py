@@ -50,6 +50,7 @@ class RiskReport(BaseModel):
     inconsistencies: list[InconsistencyItem]
     documents_analyzed: list[str]
     methodology_notes: str
+    model_name: str = ""  # LLM provider/model used for analysis
 
 
 class ProjectContext(BaseModel):

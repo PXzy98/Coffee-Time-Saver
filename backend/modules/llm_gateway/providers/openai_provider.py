@@ -5,7 +5,7 @@ from modules.llm_gateway.schemas import LLMRequest, LLMResponse, TokenUsage
 
 class OpenAIProvider(LLMProvider):
     async def complete(self, request: LLMRequest, config) -> LLMResponse:
-        client = AsyncOpenAI(api_key=config.api_key, base_url=config.api_url)
+        client = AsyncOpenAI(api_key=config.api_key or "unused", base_url=config.api_url)
         kwargs = dict(
             model=config.model,
             messages=[m.model_dump() for m in request.messages],
@@ -38,6 +38,6 @@ class OpenAIProvider(LLMProvider):
         )
 
     async def embed(self, texts: list[str], config) -> list[list[float]]:
-        client = AsyncOpenAI(api_key=config.api_key, base_url=config.api_url)
+        client = AsyncOpenAI(api_key=config.api_key or "unused", base_url=config.api_url)
         response = await client.embeddings.create(input=texts, model=config.model)
         return [item.embedding for item in response.data]

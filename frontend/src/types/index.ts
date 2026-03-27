@@ -158,6 +158,15 @@ export interface LLMConfigOut {
   is_active: boolean;
 }
 
+export interface LLMConfigCreate {
+  name: string;
+  provider: string;
+  api_url: string;
+  api_key?: string;
+  model: string;
+  is_active?: boolean;
+}
+
 export interface LLMConfigUpdate {
   provider?: string;
   api_url?: string;
@@ -236,6 +245,7 @@ export interface RiskReport {
   inconsistencies: InconsistencyItem[];
   documents_analyzed: string[];
   methodology_notes: string;
+  model_name?: string;
 }
 
 export interface RunStatusResponse {

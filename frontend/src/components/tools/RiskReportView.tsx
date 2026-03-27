@@ -13,6 +13,7 @@ export function RiskReportView({ report, onDownload, downloadingFormat }: RiskRe
         <div>
           <p className="eyebrow">Report</p>
           <h3>{report.overall_risk_level.toUpperCase()}</h3>
+          {report.model_name ? <p className="helper-text">Model: {report.model_name}</p> : null}
           <p>{report.executive_summary}</p>
         </div>
         <div className="tool-report-actions">

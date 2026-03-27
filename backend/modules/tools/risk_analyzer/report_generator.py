@@ -22,6 +22,8 @@ def generate_pdf(report: RiskReport) -> bytes:
     # Title
     story.append(Paragraph("Project Risk Analysis Report", styles["Title"]))
     story.append(Paragraph(f"Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M UTC')}", styles["Normal"]))
+    if report.model_name:
+        story.append(Paragraph(f"LLM Model: {report.model_name}", styles["Normal"]))
     story.append(Spacer(1, 0.5*cm))
 
     # Executive Summary
@@ -92,6 +94,8 @@ def generate_docx(report: RiskReport) -> bytes:
     doc = Document()
     doc.add_heading("Project Risk Analysis Report", 0)
     doc.add_paragraph(f"Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M UTC')}")
+    if report.model_name:
+        doc.add_paragraph(f"LLM Model: {report.model_name}")
 
     doc.add_heading("Executive Summary", level=1)
     doc.add_paragraph(f"Overall Risk Level: {report.overall_risk_level.upper()}")

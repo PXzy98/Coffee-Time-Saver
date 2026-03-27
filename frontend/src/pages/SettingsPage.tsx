@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { getApiErrorMessage } from '../api/client';
 import { listProjects, toggleProjectShare } from '../api/projects';
 import {
+  createLlmConfig,
   getEmailConfig,
   listLlmConfigs,
   listUsers,
-  testLlmConfig,
+  testLlmConfigById,
   updateEmailConfig,
   updateLlmConfig,
   updateUserRoles,
@@ -15,7 +16,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/common/PageS
 import { Panel } from '../components/common/Panel';
 import { isAdmin, useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import type { EmailBotConfigOut, LLMConfigOut, ProjectOut, UserAdminOut } from '../types';
+import type { EmailBotConfigOut, LLMConfigCreate, LLMConfigOut, LLMConfigUpdate, ProjectOut, UserAdminOut } from '../types';
 
 type SettingsTab = 'profile' | 'llm' | 'email' | 'projects' | 'users';
 
@@ -29,6 +30,9 @@ export function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [llmConfigs, setLlmConfigs] = useState<LLMConfigOut[]>([]);
+  const [llmApiKeys, setLlmApiKeys] = useState<Record<number, string>>({});
+  const [showAddLlm, setShowAddLlm] = useState(false);
+  const [newLlm, setNewLlm] = useState<LLMConfigCreate>({ name: 'primary', provider: 'openai', api_url: '', api_key: '', model: '', is_active: true });
   const [emailConfig, setEmailConfig] = useState<EmailBotConfigOut | null>(null);
   const [projects, setProjects] = useState<ProjectOut[]>([]);
   const [users, setUsers] = useState<UserAdminOut[]>([]);
@@ -75,14 +79,35 @@ export function SettingsPage() {
   async function handleSaveLlm(config: LLMConfigOut) {
     setBusyKey(`llm-${config.id}`);
     try {
-      const updated = await updateLlmConfig(config.id, {
+      const payload: LLMConfigUpdate = {
         provider: config.provider,
         api_url: config.api_url,
         model: config.model,
         is_active: config.is_active,
-      });
+      };
+      const keyVal = llmApiKeys[config.id];
+      if (keyVal) {
+        payload.api_key = keyVal;
+      }
+      const updated = await updateLlmConfig(config.id, payload);
       setLlmConfigs((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      setLlmApiKeys((current) => { const next = { ...current }; delete next[config.id]; return next; });
       pushToast({ tone: 'success', title: `${config.name} saved` });
+    } catch (error) {
+      pushToast({ tone: 'error', title: t('states.errorTitle'), message: getApiErrorMessage(error) });
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handleAddLlm() {
+    setBusyKey('add-llm');
+    try {
+      const created = await createLlmConfig(newLlm);
+      setLlmConfigs((current) => [...current, created]);
+      setShowAddLlm(false);
+      setNewLlm({ name: 'primary', provider: 'openai', api_url: '', api_key: '', model: '', is_active: true });
+      pushToast({ tone: 'success', title: `${created.name} created` });
     } catch (error) {
       pushToast({ tone: 'error', title: t('states.errorTitle'), message: getApiErrorMessage(error) });
     } finally {
@@ -93,11 +118,7 @@ export function SettingsPage() {
   async function handleTestLlm(config: LLMConfigOut) {
     setBusyKey(`test-${config.id}`);
     try {
-      const result = await testLlmConfig({
-        provider: config.provider,
-        api_url: config.api_url,
-        model: config.model,
-      });
+      const result = await testLlmConfigById(config.id);
       pushToast({
         tone: result.status === 'ok' ? 'success' : 'warning',
         title: `${config.name} ${result.status}`,
@@ -220,93 +241,152 @@ export function SettingsPage() {
       {!loading && !errorMessage && admin && activeTab === 'llm' ? (
         <Panel title={t('settings.llm')}>
           <div className="settings-stack padded-panel">
-            {llmConfigs.length ? (
-              llmConfigs.map((config) => (
-                <article key={config.id} className="list-card">
-                  <div className="three-column-grid">
-                    <label className="field">
-                      <span>Name</span>
-                      <input value={config.name} disabled />
-                    </label>
-                    <label className="field">
-                      <span>Provider</span>
-                      <input
-                        value={config.provider}
-                        onChange={(event) =>
-                          setLlmConfigs((current) =>
-                            current.map((item) =>
-                              item.id === config.id ? { ...item, provider: event.target.value } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="field">
-                      <span>Model</span>
-                      <input
-                        value={config.model}
-                        onChange={(event) =>
-                          setLlmConfigs((current) =>
-                            current.map((item) =>
-                              item.id === config.id ? { ...item, model: event.target.value } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </label>
-                  </div>
-
+            {llmConfigs.map((config) => (
+              <article key={config.id} className="list-card">
+                <div className="three-column-grid">
                   <label className="field">
-                    <span>API URL</span>
+                    <span>Name</span>
+                    <input value={config.name} disabled />
+                  </label>
+                  <label className="field">
+                    <span>Provider</span>
                     <input
-                      value={config.api_url}
+                      value={config.provider}
                       onChange={(event) =>
                         setLlmConfigs((current) =>
                           current.map((item) =>
-                            item.id === config.id ? { ...item, api_url: event.target.value } : item,
+                            item.id === config.id ? { ...item, provider: event.target.value } : item,
                           ),
                         )
                       }
                     />
                   </label>
-
-                  <label className="checkbox-field">
+                  <label className="field">
+                    <span>Model</span>
                     <input
-                      type="checkbox"
-                      checked={config.is_active}
+                      value={config.model}
                       onChange={(event) =>
                         setLlmConfigs((current) =>
                           current.map((item) =>
-                            item.id === config.id ? { ...item, is_active: event.target.checked } : item,
+                            item.id === config.id ? { ...item, model: event.target.value } : item,
                           ),
                         )
                       }
                     />
-                    <span>Active</span>
                   </label>
+                </div>
 
-                  <div className="form-actions">
-                    <button
-                      type="button"
-                      className="primary-button"
-                      onClick={() => void handleSaveLlm(config)}
-                      disabled={busyKey === `llm-${config.id}`}
-                    >
-                      {t('common.save')}
-                    </button>
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => void handleTestLlm(config)}
-                      disabled={busyKey === `test-${config.id}`}
-                    >
-                      Test
-                    </button>
-                  </div>
-                </article>
-              ))
+                <label className="field">
+                  <span>API URL</span>
+                  <input
+                    value={config.api_url}
+                    onChange={(event) =>
+                      setLlmConfigs((current) =>
+                        current.map((item) =>
+                          item.id === config.id ? { ...item, api_url: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+
+                <label className="field">
+                  <span>API Key</span>
+                  <input
+                    type="password"
+                    placeholder="Enter new key to update"
+                    value={llmApiKeys[config.id] ?? ''}
+                    onChange={(event) =>
+                      setLlmApiKeys((current) => ({ ...current, [config.id]: event.target.value }))
+                    }
+                  />
+                </label>
+
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={config.is_active}
+                    onChange={(event) =>
+                      setLlmConfigs((current) =>
+                        current.map((item) =>
+                          item.id === config.id ? { ...item, is_active: event.target.checked } : item,
+                        ),
+                      )
+                    }
+                  />
+                  <span>Active</span>
+                </label>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={() => void handleSaveLlm(config)}
+                    disabled={busyKey === `llm-${config.id}`}
+                  >
+                    {t('common.save')}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => void handleTestLlm(config)}
+                    disabled={busyKey === `test-${config.id}`}
+                  >
+                    Test
+                  </button>
+                </div>
+              </article>
+            ))}
+
+            {!llmConfigs.length && !showAddLlm ? (
+              <EmptyState title={t('states.emptyTitle')} message="No LLM configs yet. Add one to enable AI features." />
+            ) : null}
+
+            {showAddLlm ? (
+              <article className="list-card">
+                <div className="three-column-grid">
+                  <label className="field">
+                    <span>Name</span>
+                    <input value={newLlm.name} onChange={(e) => setNewLlm({ ...newLlm, name: e.target.value })} />
+                  </label>
+                  <label className="field">
+                    <span>Provider</span>
+                    <select value={newLlm.provider} onChange={(e) => setNewLlm({ ...newLlm, provider: e.target.value })}>
+                      <option value="openai">openai</option>
+                      <option value="claude">claude</option>
+                      <option value="ollama">ollama</option>
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>Model</span>
+                    <input placeholder="e.g. google/gemini-2.5-flash" value={newLlm.model} onChange={(e) => setNewLlm({ ...newLlm, model: e.target.value })} />
+                  </label>
+                </div>
+                <label className="field">
+                  <span>API URL</span>
+                  <input placeholder="e.g. https://openrouter.ai/api/v1" value={newLlm.api_url} onChange={(e) => setNewLlm({ ...newLlm, api_url: e.target.value })} />
+                </label>
+                <label className="field">
+                  <span>API Key</span>
+                  <input type="password" placeholder="sk-or-..." value={newLlm.api_key ?? ''} onChange={(e) => setNewLlm({ ...newLlm, api_key: e.target.value })} />
+                </label>
+                <label className="checkbox-field">
+                  <input type="checkbox" checked={newLlm.is_active ?? true} onChange={(e) => setNewLlm({ ...newLlm, is_active: e.target.checked })} />
+                  <span>Active</span>
+                </label>
+                <div className="form-actions">
+                  <button type="button" className="primary-button" onClick={() => void handleAddLlm()} disabled={busyKey === 'add-llm'}>
+                    Create
+                  </button>
+                  <button type="button" className="ghost-button" onClick={() => setShowAddLlm(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </article>
             ) : (
-              <EmptyState title={t('states.emptyTitle')} message="No LLM configs available." />
+              <button type="button" className="secondary-button" onClick={() => setShowAddLlm(true)}>
+                + Add LLM Config
+              </button>
             )}
           </div>
         </Panel>
