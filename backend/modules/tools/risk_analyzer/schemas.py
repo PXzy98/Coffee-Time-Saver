@@ -40,6 +40,8 @@ class InconsistencyItem(BaseModel):
 
 
 class RiskReport(BaseModel):
+    model_config = {"protected_namespaces": ()}
+
     report_id: uuid.UUID
     project_id: uuid.UUID
     generated_at: datetime

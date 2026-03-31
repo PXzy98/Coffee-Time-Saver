@@ -62,6 +62,7 @@ from modules.file_processing.router import router as files_router
 from modules.settings.router import router as settings_router
 from modules.tools.router import router as tools_router
 from modules.tools.risk_analyzer.router import router as risk_router
+from modules.email_bot.oauth_router import router as email_oauth_router
 
 app.include_router(auth_router)
 app.include_router(dashboard_router)
@@ -72,6 +73,7 @@ app.include_router(files_router)
 app.include_router(settings_router)
 app.include_router(tools_router)
 app.include_router(risk_router)
+app.include_router(email_oauth_router)
 
 
 @app.websocket("/ws")

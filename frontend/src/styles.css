@@ -665,6 +665,28 @@ a {
   border: 1px solid rgba(23, 36, 38, 0.08);
 }
 
+.list-card-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.active-model-selector {
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+}
+
+.selector-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.selector-row select {
+  flex: 1;
+}
+
 .activity-item,
 .project-card,
 .table-row {
@@ -853,6 +875,12 @@ a {
   padding: 1rem;
   border-radius: 1rem;
   background: rgba(23, 36, 38, 0.05);
+}
+
+.status-box-error {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: #b91c1c;
 }
 
 .tool-report,

@@ -245,7 +245,7 @@ export function ToolsPage() {
                     <strong>{activeLlm ? `${activeLlm.provider} / ${activeLlm.model}` : t('tools.noModelConfigured')}</strong>
                   </div>
 
-                  <div className="status-box">
+                  <div className={`status-box${runStatus?.status === 'failed' ? ' status-box-error' : ''}`}>
                     <p className="status-box-label">{t('tools.reportStatus')}</p>
                     <strong>{runStatus?.status ?? 'idle'}</strong>
                     {runStatus?.message ? <p className="helper-text">{runStatus.message}</p> : null}
@@ -253,12 +253,17 @@ export function ToolsPage() {
                 </form>
 
                 <div className="tool-results">
-                  {report ? (
+                  {runStatus?.status === 'failed' ? (
+                    <ErrorState
+                      title={t('states.errorTitle')}
+                      message={runStatus.message ?? 'Analysis failed. Check the LLM configuration in Settings.'}
+                    />
+                  ) : report ? (
                     <RiskReportView report={report} onDownload={handleDownload} downloadingFormat={downloadingFormat} />
                   ) : currentReportId ? (
                     <EmptyState
-                      title={runStatus?.status === 'failed' ? t('states.errorTitle') : t('common.loading')}
-                      message={runStatus?.message ?? `Report ${currentReportId} is still ${runStatus?.status ?? 'pending'}.`}
+                      title={t('common.loading')}
+                      message={`Report ${currentReportId} is still ${runStatus?.status ?? 'pending'}.`}
                     />
                   ) : (
                     <EmptyState title={t('states.emptyTitle')} message="Run the analyzer to populate this panel." />

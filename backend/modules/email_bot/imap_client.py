@@ -1,8 +1,13 @@
+import base64
 import imaplib
 import email as email_lib
+import logging
 from email.header import decode_header
-from datetime import datetime
 from typing import Optional
+
+import httpx
+
+logger = logging.getLogger("coffee_time_saver")
 
 
 def decode_mime_words(s: str) -> str:
@@ -18,18 +23,80 @@ def decode_mime_words(s: str) -> str:
     return "".join(decoded)
 
 
+def _build_xoauth2_string(user: str, access_token: str) -> str:
+    """Build XOAUTH2 SASL string: user=<user>\\x01auth=Bearer <token>\\x01\\x01"""
+    return f"user={user}\x01auth=Bearer {access_token}\x01\x01"
+
+
+def refresh_access_token(token_url: str, client_id: str, client_secret: str,
+                         refresh_token: str) -> dict:
+    """Exchange refresh_token for a new access_token. Returns the token response dict."""
+    resp = httpx.post(token_url, data={
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret,
+    })
+    resp.raise_for_status()
+    return resp.json()
+
+
 class IMAPClient:
-    def __init__(self, host: str, port: int, user: str, password: str, folder: str = "INBOX"):
+    def __init__(self, host: str, port: int, user: str, password: str,
+                 folder: str = "INBOX", auth_method: str = "password",
+                 oauth_access_token: str = "", oauth_refresh_token: str = "",
+                 oauth_client_id: str = "", oauth_client_secret: str = "",
+                 oauth_token_url: str = ""):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
         self.folder = folder
+        self.auth_method = auth_method
+        self.oauth_access_token = oauth_access_token
+        self.oauth_refresh_token = oauth_refresh_token
+        self.oauth_client_id = oauth_client_id
+        self.oauth_client_secret = oauth_client_secret
+        self.oauth_token_url = oauth_token_url
+
+    def _authenticate(self, conn: imaplib.IMAP4_SSL) -> None:
+        """Login via password or XOAUTH2 depending on auth_method."""
+        if self.auth_method == "oauth2":
+            # Try current access token first
+            xoauth2_str = _build_xoauth2_string(self.user, self.oauth_access_token)
+            try:
+                conn.authenticate(
+                    "XOAUTH2",
+                    lambda _: xoauth2_str.encode(),
+                )
+                return
+            except imaplib.IMAP4.error:
+                logger.info("XOAUTH2 auth failed, attempting token refresh")
+
+            # Refresh and retry
+            if not self.oauth_refresh_token:
+                raise RuntimeError("OAuth2 access token expired and no refresh token available")
+
+            token_data = refresh_access_token(
+                self.oauth_token_url, self.oauth_client_id,
+                self.oauth_client_secret, self.oauth_refresh_token,
+            )
+            self.oauth_access_token = token_data["access_token"]
+            if "refresh_token" in token_data:
+                self.oauth_refresh_token = token_data["refresh_token"]
+
+            xoauth2_str = _build_xoauth2_string(self.user, self.oauth_access_token)
+            conn.authenticate(
+                "XOAUTH2",
+                lambda _: xoauth2_str.encode(),
+            )
+        else:
+            conn.login(self.user, self.password)
 
     def fetch_unseen(self) -> list[dict]:
         """Connect, fetch UNSEEN emails, mark as SEEN, return list of dicts."""
         conn = imaplib.IMAP4_SSL(self.host, self.port)
-        conn.login(self.user, self.password)
+        self._authenticate(conn)
         conn.select(self.folder)
 
         _, msg_ids = conn.search(None, "UNSEEN")

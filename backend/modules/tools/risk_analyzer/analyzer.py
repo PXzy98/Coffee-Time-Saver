@@ -160,15 +160,20 @@ Only include risks with clear evidence in the provided materials. Do not invent 
         ],
         config_name="primary",
         response_format="json",
-        max_tokens=16000,   # qwen3 thinking models need large budget: ~8-12k thinking + ~3k JSON
+        max_tokens=32000,   # thinking models need large budget: ~20k thinking + ~5k JSON output
         temperature=0.3,
     )
 
+    # LLM call errors (auth, network, timeout) propagate — caller sets status=failed
+    response = await llm.complete(request)
+    logger.info("Risk modelling: LLM response length=%d, preview=%r",
+                len(response.content), response.content[:300])
+
+    # JSON parsing errors are non-fatal — log and return empty
     try:
-        response = await llm.complete(request)
         data = _extract_json(response.content)
         if data is None:
-            logger.error("Risk modelling: failed to extract JSON from LLM response (length=%d)", len(response.content))
+            logger.error("Risk modelling: failed to extract JSON — full response:\n%s", response.content[:2000])
             return []
         if isinstance(data, dict) and "risks" in data:
             data = data["risks"]
@@ -199,7 +204,7 @@ Only include risks with clear evidence in the provided materials. Do not invent 
             ))
         return risks
     except Exception as e:
-        logger.error("Risk modelling failed: %s", e)
+        logger.error("Risk modelling: JSON parse error: %s", e)
         return []
 
 
@@ -243,13 +248,15 @@ async def inconsistency_detection(
             ],
             config_name="primary",
             response_format="json",
-            max_tokens=4000,
+            max_tokens=16000,   # thinking models: ~12k thinking + ~3k JSON per pair
             temperature=0.2,
         )
+        # LLM call errors propagate to caller
+        response = await llm.complete(request)
+        if not response.content.strip():
+            continue
+        # JSON parsing errors are non-fatal for individual pairs
         try:
-            response = await llm.complete(request)
-            if not response.content.strip():
-                continue
             data = _extract_json(response.content)
             if data is None:
                 logger.warning("Inconsistency detection: failed to extract JSON for pair (%s, %s)",
@@ -270,7 +277,7 @@ async def inconsistency_detection(
                     recommendation=item.get("recommendation") or "",
                 ))
         except Exception as e:
-            logger.error("Inconsistency detection failed for pair (%s, %s): %s",
+            logger.error("Inconsistency detection: JSON parse error for pair (%s, %s): %s",
                          doc_a["filename"], doc_b["filename"], e)
 
     return inconsistencies
@@ -360,7 +367,7 @@ Write in formal government project management language. Do not use bullet points
                 Message(role="user", content=prompt),
             ],
             config_name="primary",
-            max_tokens=3000,
+            max_tokens=8000,    # thinking models: ~5k thinking + ~2k summary text
             temperature=0.4,
         )
         response = await llm.complete(request)

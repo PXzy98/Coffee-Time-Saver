@@ -31,8 +31,9 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [llmConfigs, setLlmConfigs] = useState<LLMConfigOut[]>([]);
   const [llmApiKeys, setLlmApiKeys] = useState<Record<number, string>>({});
+  const [selectedActiveId, setSelectedActiveId] = useState<number | ''>('');
   const [showAddLlm, setShowAddLlm] = useState(false);
-  const [newLlm, setNewLlm] = useState<LLMConfigCreate>({ name: 'primary', provider: 'openai', api_url: '', api_key: '', model: '', is_active: true });
+  const [newLlm, setNewLlm] = useState<LLMConfigCreate>({ name: 'primary', provider: 'openai', api_url: '', api_key: '', model: '', is_active: false });
   const [emailConfig, setEmailConfig] = useState<EmailBotConfigOut | null>(null);
   const [projects, setProjects] = useState<ProjectOut[]>([]);
   const [users, setUsers] = useState<UserAdminOut[]>([]);
@@ -62,6 +63,8 @@ export function SettingsPage() {
         listUsers(),
       ]);
       setLlmConfigs(llmData);
+      const activeConfig = llmData.find((c) => c.is_active);
+      setSelectedActiveId(activeConfig ? activeConfig.id : '');
       setEmailConfig(emailData);
       setProjects(projectData);
       setUsers(userData);
@@ -76,6 +79,22 @@ export function SettingsPage() {
     void loadData();
   }, [loadData]);
 
+  async function handleSetActive() {
+    if (selectedActiveId === '') return;
+    setBusyKey('set-active');
+    try {
+      const updated = await updateLlmConfig(selectedActiveId, { is_active: true });
+      setLlmConfigs((current) =>
+        current.map((item) => ({ ...item, is_active: item.id === updated.id })),
+      );
+      pushToast({ tone: 'success', title: `${updated.name} set as active model` });
+    } catch (error) {
+      pushToast({ tone: 'error', title: t('states.errorTitle'), message: getApiErrorMessage(error) });
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
   async function handleSaveLlm(config: LLMConfigOut) {
     setBusyKey(`llm-${config.id}`);
     try {
@@ -83,7 +102,6 @@ export function SettingsPage() {
         provider: config.provider,
         api_url: config.api_url,
         model: config.model,
-        is_active: config.is_active,
       };
       const keyVal = llmApiKeys[config.id];
       if (keyVal) {
@@ -241,8 +259,37 @@ export function SettingsPage() {
       {!loading && !errorMessage && admin && activeTab === 'llm' ? (
         <Panel title={t('settings.llm')}>
           <div className="settings-stack padded-panel">
+            {llmConfigs.length > 0 && (
+              <div className="active-model-selector">
+                <label className="field">
+                  <span>Active Model</span>
+                  <div className="selector-row">
+                    <select
+                      value={selectedActiveId}
+                      onChange={(e) => setSelectedActiveId(e.target.value ? Number(e.target.value) : '')}
+                    >
+                      <option value="">-- Select active model --</option>
+                      {llmConfigs.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.provider} / {c.model})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={() => void handleSetActive()}
+                      disabled={busyKey === 'set-active' || selectedActiveId === ''}
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </label>
+              </div>
+            )}
+
             {llmConfigs.map((config) => (
-              <article key={config.id} className="list-card">
+              <article key={config.id} className={`list-card${config.is_active ? ' list-card-active' : ''}`}>
                 <div className="three-column-grid">
                   <label className="field">
                     <span>Name</span>
@@ -302,20 +349,7 @@ export function SettingsPage() {
                   />
                 </label>
 
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={config.is_active}
-                    onChange={(event) =>
-                      setLlmConfigs((current) =>
-                        current.map((item) =>
-                          item.id === config.id ? { ...item, is_active: event.target.checked } : item,
-                        ),
-                      )
-                    }
-                  />
-                  <span>Active</span>
-                </label>
+                {config.is_active && <span className="badge badge-low">Active</span>}
 
                 <div className="form-actions">
                   <button
@@ -369,10 +403,6 @@ export function SettingsPage() {
                 <label className="field">
                   <span>API Key</span>
                   <input type="password" placeholder="sk-or-..." value={newLlm.api_key ?? ''} onChange={(e) => setNewLlm({ ...newLlm, api_key: e.target.value })} />
-                </label>
-                <label className="checkbox-field">
-                  <input type="checkbox" checked={newLlm.is_active ?? true} onChange={(e) => setNewLlm({ ...newLlm, is_active: e.target.checked })} />
-                  <span>Active</span>
                 </label>
                 <div className="form-actions">
                   <button type="button" className="primary-button" onClick={() => void handleAddLlm()} disabled={busyKey === 'add-llm'}>

@@ -23,7 +23,8 @@ class EmailProcessor:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def process(self, raw: dict, user_id) -> None:
+    async def process(self, raw: dict, user_id) -> Email | None:
+        """Process a raw email dict. Returns the Email row (or None if duplicate)."""
         # Deduplicate
         if raw.get("message_id"):
             from sqlalchemy import select
@@ -31,7 +32,7 @@ class EmailProcessor:
                 select(Email).where(Email.message_id == raw["message_id"])
             )
             if result.scalar_one_or_none():
-                return  # Already processed
+                return None  # Already processed
 
         received_at = None
         if raw.get("received_at"):
@@ -91,17 +92,20 @@ class EmailProcessor:
             from tasks.file_tasks import process_file
             process_file.delay(str(doc.id))
 
-        # Extract action items as tasks
-        body = raw.get("body_text", "") or ""
-        actions = _extract_action_items(body)
-        for action_title in actions:
-            task = Task(
-                user_id=user_id,
-                title=action_title[:500],
-                source="email",
-                description=f"From email: {raw.get('subject', '')}",
-            )
-            self.db.add(task)
+        # Extract action items as tasks (regex fallback — used when EMAIL_TASK_STRATEGY=regex)
+        from config import settings
+        if settings.EMAIL_TASK_STRATEGY == "regex":
+            body = raw.get("body_text", "") or ""
+            actions = _extract_action_items(body)
+            for action_title in actions:
+                task = Task(
+                    user_id=user_id,
+                    title=action_title[:500],
+                    source="email",
+                    description=f"From email: {raw.get('subject', '')}",
+                )
+                self.db.add(task)
 
         email_row.processed = True
         await self.db.commit()
+        return email_row
