@@ -27,6 +27,7 @@ const initialForm: TaskCreate = {
   description: '',
   priority: 50,
   due_date: null,
+  scheduled_at: null,
   project_id: null,
   source: 'manual',
 };
@@ -103,6 +104,7 @@ export function TasksPage() {
         description: form.description?.trim() || undefined,
         priority: form.priority,
         due_date: form.due_date || null,
+        scheduled_at: form.scheduled_at || null,
         project_id: form.project_id || null,
         source: form.source || 'manual',
       });
@@ -223,6 +225,15 @@ export function TasksPage() {
             </div>
 
             <label className="field">
+              <span>{t('tasks.scheduledAt')}</span>
+              <input
+                value={form.scheduled_at ?? ''}
+                onChange={(event) => setForm((current) => ({ ...current, scheduled_at: event.target.value || null }))}
+                type="datetime-local"
+              />
+            </label>
+
+            <label className="field">
               <span>{t('tasks.source')}</span>
               <input
                 value={form.source ?? 'manual'}
@@ -318,6 +329,7 @@ export function TasksPage() {
                       <span>{task.source}</span>
                       <span>{projectName ?? 'No project'}</span>
                       <span>{formatDate(task.due_date, locale)}</span>
+                      {task.scheduled_at ? <span>{t('tasks.scheduledAt')}: {formatDate(task.scheduled_at, locale)}</span> : null}
                     </div>
                   </div>
 

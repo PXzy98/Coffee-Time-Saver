@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from config import settings
 from core.models import Task, User
@@ -15,9 +15,14 @@ class TaskService:
         self.db = db
 
     async def list_tasks(self, user: User) -> list[Task]:
+        now = datetime.now(timezone.utc)
         result = await self.db.execute(
             select(Task)
-            .where(Task.user_id == user.id, Task.is_completed == False)
+            .where(
+                Task.user_id == user.id,
+                Task.is_completed == False,
+                or_(Task.scheduled_at == None, Task.scheduled_at <= now),
+            )
             .order_by(Task.sort_score.desc().nullslast(), Task.created_at.asc())
         )
         return result.scalars().all()
@@ -43,8 +48,13 @@ class TaskService:
         await self.db.commit()
 
     async def _resort_and_save(self, user: User) -> list[Task]:
+        now = datetime.now(timezone.utc)
         result = await self.db.execute(
-            select(Task).where(Task.user_id == user.id, Task.is_completed == False)
+            select(Task).where(
+                Task.user_id == user.id,
+                Task.is_completed == False,
+                or_(Task.scheduled_at == None, Task.scheduled_at <= now),
+            )
         )
         tasks = result.scalars().all()
         sorter = get_sorter(settings.TASK_SORTER_STRATEGY)

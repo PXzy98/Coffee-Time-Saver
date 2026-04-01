@@ -84,6 +84,7 @@
     "priorityLow": "Faible",
     "priorityMedium": "Moyenne",
     "priorityHigh": "Élevée",
+    "scheduledAt": "Visible après",
     "noTasks": "Aucune tâche active."
   },
   "projects": {

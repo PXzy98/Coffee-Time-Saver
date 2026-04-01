@@ -58,6 +58,7 @@ export interface TaskOut {
   description: string | null;
   priority: number;
   due_date: string | null;
+  scheduled_at: string | null;
   is_completed: boolean;
   completed_at: string | null;
   source: string;
@@ -71,6 +72,7 @@ export interface TaskCreate {
   description?: string;
   priority?: number;
   due_date?: string | null;
+  scheduled_at?: string | null;
   project_id?: string | null;
   source?: string;
 }
@@ -80,6 +82,7 @@ export interface TaskUpdate {
   description?: string | null;
   priority?: number;
   due_date?: string | null;
+  scheduled_at?: string | null;
   is_completed?: boolean;
   project_id?: string | null;
 }

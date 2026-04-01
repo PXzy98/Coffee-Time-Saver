@@ -9,6 +9,7 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     priority: int = 50
     due_date: Optional[date] = None
+    scheduled_at: Optional[datetime] = None
     project_id: Optional[uuid.UUID] = None
     source: str = "manual"
 
@@ -18,6 +19,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     priority: Optional[int] = None
     due_date: Optional[date] = None
+    scheduled_at: Optional[datetime] = None
     is_completed: Optional[bool] = None
     project_id: Optional[uuid.UUID] = None
 
@@ -28,6 +30,7 @@ class TaskOut(BaseModel):
     description: Optional[str]
     priority: int
     due_date: Optional[date]
+    scheduled_at: Optional[datetime]
     is_completed: bool
     completed_at: Optional[datetime]
     source: str

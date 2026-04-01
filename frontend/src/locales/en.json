@@ -84,6 +84,7 @@
     "priorityLow": "Low",
     "priorityMedium": "Medium",
     "priorityHigh": "High",
+    "scheduledAt": "Show after",
     "noTasks": "No active tasks found."
   },
   "projects": {
