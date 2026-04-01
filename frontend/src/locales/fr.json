@@ -41,7 +41,10 @@
     "profile": "Profil",
     "websocketConnected": "Mises à jour en direct connectées",
     "websocketConnecting": "Connexion aux mises à jour en direct",
-    "websocketDisconnected": "Mises à jour en direct déconnectées"
+    "websocketDisconnected": "Mises à jour en direct déconnectées",
+    "emailBotConnected": "Robot courriel connecté",
+    "emailBotDisconnected": "Robot courriel inaccessible",
+    "emailBotNotConfigured": "Robot courriel non configuré"
   },
   "notifications": {
     "taskUpdated": "Les tâches ont été mises à jour.",

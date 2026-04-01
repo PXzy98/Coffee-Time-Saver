@@ -1,5 +1,12 @@
 import asyncio
 import logging
+import sys
+from pathlib import Path
+
+# Ensure backend directory is on sys.path regardless of working directory
+_backend_dir = str(Path(__file__).resolve().parent.parent)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
 
 from tasks import celery_app
 
@@ -8,14 +15,25 @@ logger = logging.getLogger("coffee_time_saver")
 
 @celery_app.task(name="tasks.email_tasks.poll_emails")
 def poll_emails() -> None:
+    import sys
+    from pathlib import Path
+    _bd = str(Path(__file__).resolve().parent.parent)
+    if _bd not in sys.path:
+        sys.path.insert(0, _bd)
     asyncio.run(_poll_emails_async())
 
 
 async def _poll_emails_async() -> None:
+    import sys
+    from pathlib import Path
+    _bd = str(Path(__file__).resolve().parent.parent)
+    if _bd not in sys.path:
+        sys.path.insert(0, _bd)
     from config import settings
     if not settings.IMAP_HOST:
         return
-    from core.database import AsyncSessionLocal
+    from core.database import engine, AsyncSessionLocal
+    await engine.dispose()  # Reset connection pool for this event loop
     from modules.email_bot.service import EmailBotService
 
     async with AsyncSessionLocal() as db:

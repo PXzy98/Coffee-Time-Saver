@@ -144,6 +144,30 @@ async def test_llm_config(
 # Email Bot Config
 # ---------------------------------------------------------------------------
 
+@router.get("/email-status")
+async def get_email_status(current_user: User = Depends(get_current_user)):
+    """Return email bot configuration and live connection status. Available to all authenticated users."""
+    import asyncio
+    import imaplib
+
+    configured = bool(app_settings.IMAP_HOST and app_settings.IMAP_USER)
+    if not configured:
+        return {"configured": False, "connected": False}
+
+    def _test_imap():
+        try:
+            conn = imaplib.IMAP4_SSL(app_settings.IMAP_HOST, app_settings.IMAP_PORT)
+            conn.login(app_settings.IMAP_USER, app_settings.IMAP_PASSWORD)
+            conn.logout()
+            return True
+        except Exception:
+            return False
+
+    loop = asyncio.get_event_loop()
+    connected = await loop.run_in_executor(None, _test_imap)
+    return {"configured": True, "connected": connected}
+
+
 @router.get("/email", response_model=EmailBotConfigOut)
 async def get_email_config(current_user: User = Depends(require_role("admin"))):
     return EmailBotConfigOut(

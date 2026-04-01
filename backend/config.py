@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     IMAP_FOLDER: str = "INBOX"
     IMAP_POLL_INTERVAL_SECONDS: int = 300
     IMAP_AUTH_METHOD: Literal["password", "oauth2"] = "password"
+    IMAP_OWNER_EMAIL: str = ""  # If set, emails are assigned to this user; defaults to first active user
 
     # OAuth2 for IMAP (Yahoo / Google / Microsoft)
     IMAP_OAUTH_CLIENT_ID: str = ""

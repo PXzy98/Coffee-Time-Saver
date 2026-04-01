@@ -487,74 +487,81 @@ async def inconsistency_detection(
 
     inconsistencies = []
     warnings = []
+    semaphore = asyncio.Semaphore(5)
 
-    for a, b in doc_pairs[:20]:  # raised from 10 to 20 (summaries are compact)
-        request = LLMRequest(
-            messages=[
-                Message(role="system", content=(
-                    "You are a document consistency analyst for a government project gate review. "
-                    "Compare the two provided document summaries and identify any contradictions, scope drift, or undocumented gaps. "
-                    "Return a JSON object with key \"inconsistencies\" containing an array. "
-                    "Each item must have: "
-                    "id (string like INC-1), "
-                    "type (contradiction|drift|gap), "
-                    "document_a (filename), passage_a (supporting evidence from doc A summary), "
-                    "document_b (filename), passage_b (supporting evidence from doc B summary), "
-                    "explanation (2-3 sentences explaining the inconsistency and its project impact), "
-                    "confidence (0.0-1.0), "
-                    "recommendation (specific action to resolve). "
-                    "Only report inconsistencies clearly supported by the summaries. "
-                    "Return {\"inconsistencies\": []} if none found."
-                )),
-                Message(role="user", content=json.dumps({
-                    "document_a": {
-                        "filename": a.filename, "type": a.doc_type,
-                        "summary": a.summary,
-                        "commitments": a.commitments,
-                        "risk_signals": a.risk_signals,
-                    },
-                    "document_b": {
-                        "filename": b.filename, "type": b.doc_type,
-                        "summary": b.summary,
-                        "commitments": b.commitments,
-                        "risk_signals": b.risk_signals,
-                    },
-                })),
-            ],
-            config_name="primary",
-            response_format="json",
-            max_tokens=16000,
-            temperature=0.2,
-        )
+    async def _check_pair(a: DocumentSummary, b: DocumentSummary) -> tuple[list[InconsistencyItem], list[str]]:
+        async with semaphore:
+            request = LLMRequest(
+                messages=[
+                    Message(role="system", content=(
+                        "You are a document consistency analyst for a government project gate review. "
+                        "Compare the two provided document summaries and identify any contradictions, scope drift, or undocumented gaps. "
+                        "Return a JSON object with key \"inconsistencies\" containing an array. "
+                        "Each item must have: "
+                        "id (string like INC-1), "
+                        "type (contradiction|drift|gap), "
+                        "document_a (filename), passage_a (supporting evidence from doc A summary), "
+                        "document_b (filename), passage_b (supporting evidence from doc B summary), "
+                        "explanation (2-3 sentences explaining the inconsistency and its project impact), "
+                        "confidence (0.0-1.0), "
+                        "recommendation (specific action to resolve). "
+                        "Only report inconsistencies clearly supported by the summaries. "
+                        "Return {\"inconsistencies\": []} if none found."
+                    )),
+                    Message(role="user", content=json.dumps({
+                        "document_a": {
+                            "filename": a.filename, "type": a.doc_type,
+                            "summary": a.summary,
+                            "commitments": a.commitments,
+                            "risk_signals": a.risk_signals,
+                        },
+                        "document_b": {
+                            "filename": b.filename, "type": b.doc_type,
+                            "summary": b.summary,
+                            "commitments": b.commitments,
+                            "risk_signals": b.risk_signals,
+                        },
+                    })),
+                ],
+                config_name="primary",
+                response_format="json",
+                max_tokens=16000,
+                temperature=0.2,
+            )
+            try:
+                response = await llm.complete(request)
+                if not response.content.strip():
+                    return [], []
+                data = _extract_json(response.content)
+                if data is None:
+                    msg = f"Inconsistency detection: failed to parse JSON for pair ({a.filename}, {b.filename})"
+                    logger.warning(msg)
+                    return [], [msg]
+                if isinstance(data, dict) and "inconsistencies" in data:
+                    data = data["inconsistencies"]
+                pair_items = []
+                for item in (data if isinstance(data, list) else []):
+                    pair_items.append(InconsistencyItem(
+                        id=item.get("id") or str(uuid.uuid4())[:8],
+                        type=item.get("type") or "contradiction",
+                        document_a=item.get("document_a") or a.filename,
+                        passage_a=item.get("passage_a") or "",
+                        document_b=item.get("document_b") or b.filename,
+                        passage_b=item.get("passage_b") or "",
+                        explanation=item.get("explanation") or "",
+                        confidence=float(item.get("confidence") or 0.6),
+                        recommendation=item.get("recommendation") or "",
+                    ))
+                return pair_items, []
+            except Exception as e:
+                msg = f"Inconsistency detection failed for pair ({a.filename}, {b.filename}): {e}"
+                logger.error(msg)
+                return [], [msg]
 
-        try:
-            response = await llm.complete(request)
-            if not response.content.strip():
-                continue
-            data = _extract_json(response.content)
-            if data is None:
-                msg = f"Inconsistency detection: failed to parse JSON for pair ({a.filename}, {b.filename})"
-                logger.warning(msg)
-                warnings.append(msg)
-                continue
-            if isinstance(data, dict) and "inconsistencies" in data:
-                data = data["inconsistencies"]
-            for item in (data if isinstance(data, list) else []):
-                inconsistencies.append(InconsistencyItem(
-                    id=item.get("id") or str(uuid.uuid4())[:8],
-                    type=item.get("type") or "contradiction",
-                    document_a=item.get("document_a") or a.filename,
-                    passage_a=item.get("passage_a") or "",
-                    document_b=item.get("document_b") or b.filename,
-                    passage_b=item.get("passage_b") or "",
-                    explanation=item.get("explanation") or "",
-                    confidence=float(item.get("confidence") or 0.6),
-                    recommendation=item.get("recommendation") or "",
-                ))
-        except Exception as e:
-            msg = f"Inconsistency detection failed for pair ({a.filename}, {b.filename}): {e}"
-            logger.error(msg)
-            warnings.append(msg)
+    pair_results = await asyncio.gather(*[_check_pair(a, b) for a, b in doc_pairs[:20]])
+    for pair_items, pair_warnings in pair_results:
+        inconsistencies.extend(pair_items)
+        warnings.extend(pair_warnings)
 
     return inconsistencies, warnings
 

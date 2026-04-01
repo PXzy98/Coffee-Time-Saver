@@ -35,10 +35,15 @@ class EmailBotService:
             oauth_token_url=settings.IMAP_OAUTH_TOKEN_URL,
         )
 
-        # Get a system user to own imported emails (first admin)
-        result = await self.db.execute(
-            select(User).where(User.is_active == True).limit(1)
-        )
+        # Get the user to own imported emails — prefer IMAP_OWNER_EMAIL if configured
+        if settings.IMAP_OWNER_EMAIL:
+            result = await self.db.execute(
+                select(User).where(User.email == settings.IMAP_OWNER_EMAIL, User.is_active == True)
+            )
+        else:
+            result = await self.db.execute(
+                select(User).where(User.is_active == True).limit(1)
+            )
         owner = result.scalar_one_or_none()
         if owner is None:
             logger.warning("No users found — cannot process emails")

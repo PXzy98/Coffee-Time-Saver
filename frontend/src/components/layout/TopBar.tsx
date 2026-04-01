@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../api/auth';
+import { getEmailStatus } from '../../api/settings';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 
@@ -19,6 +20,26 @@ export function TopBar() {
   const markNotificationsSeen = useUiStore((state) => state.markNotificationsSeen);
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ configured: boolean; connected: boolean } | null>(null);
+
+  useEffect(() => {
+    getEmailStatus()
+      .then(setEmailStatus)
+      .catch(() => setEmailStatus({ configured: false, connected: false }));
+  }, []);
+
+  const emailBotLabel = useMemo(() => {
+    if (!emailStatus) return null;
+    if (!emailStatus.configured) return t('topbar.emailBotNotConfigured');
+    if (emailStatus.connected) return t('topbar.emailBotConnected');
+    return t('topbar.emailBotDisconnected');
+  }, [t, emailStatus]);
+
+  const emailBotPillClass = useMemo(() => {
+    if (!emailStatus || !emailStatus.configured) return 'status-pill status-pill-disconnected';
+    if (emailStatus.connected) return 'status-pill status-pill-connected';
+    return 'status-pill status-pill-disconnected';
+  }, [emailStatus]);
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => notification.unread).length,
@@ -66,6 +87,9 @@ export function TopBar() {
           ☰
         </button>
         <div className={`status-pill status-pill-${websocketStatus}`}>{websocketLabel}</div>
+        {emailBotLabel !== null && (
+          <div className={emailBotPillClass}>{emailBotLabel}</div>
+        )}
       </div>
 
       <div className="topbar-right">

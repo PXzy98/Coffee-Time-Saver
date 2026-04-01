@@ -45,6 +45,11 @@ export async function testLlmConfigById(configId: number): Promise<{ status: str
   return response.data;
 }
 
+export async function getEmailStatus(): Promise<{ configured: boolean; connected: boolean }> {
+  const response = await apiClient.get<{ configured: boolean; connected: boolean }>('/api/settings/email-status');
+  return response.data;
+}
+
 export async function getEmailConfig(): Promise<EmailBotConfigOut> {
   const response = await apiClient.get<EmailBotConfigOut>('/api/settings/email');
   return response.data;

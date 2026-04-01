@@ -41,7 +41,10 @@
     "profile": "Profile",
     "websocketConnected": "Live updates connected",
     "websocketConnecting": "Connecting live updates",
-    "websocketDisconnected": "Live updates disconnected"
+    "websocketDisconnected": "Live updates disconnected",
+    "emailBotConnected": "Email bot connected",
+    "emailBotDisconnected": "Email bot unreachable",
+    "emailBotNotConfigured": "Email bot not configured"
   },
   "notifications": {
     "taskUpdated": "Tasks were updated.",
