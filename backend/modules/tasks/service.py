@@ -57,7 +57,11 @@ class TaskService:
             )
         )
         tasks = result.scalars().all()
-        sorter = get_sorter(settings.TASK_SORTER_STRATEGY)
+        llm = None
+        if settings.TASK_SORTER_STRATEGY == "llm":
+            from modules.llm_gateway.service import LLMGateway
+            llm = LLMGateway(self.db)
+        sorter = get_sorter(settings.TASK_SORTER_STRATEGY, llm_gateway=llm)
         sorted_tasks = await sorter.sort(tasks, user)
         await self.db.commit()
         return sorted_tasks

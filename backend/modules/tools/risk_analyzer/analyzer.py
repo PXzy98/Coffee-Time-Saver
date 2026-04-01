@@ -766,7 +766,29 @@ async def run_full_analysis(
     for doc in context.documents:
         chunks = doc["chunks"]
         if not chunks:
-            warnings.append(f"Document '{doc['filename']}' has no chunks — skipped summarization")
+            # Fallback: if document has full_text but no chunks, generate a
+            # document summary directly from full_text via LLM so the document
+            # still participates in risk modelling and inconsistency detection.
+            full_text = (doc.get("full_text") or "").strip()
+            if not full_text:
+                warnings.append(f"Document '{doc['filename']}' has no chunks and no text — skipped")
+                continue
+
+            logger.info("Document '%s' has no chunks — falling back to full_text summary", doc["filename"])
+            try:
+                fake_chunk = ChunkSummary(
+                    chunk_id="fulltext-0", document_id=doc["id"], chunk_index=0,
+                    summary=full_text[:2000], topic="full document",
+                )
+                doc_summary = await build_document_summary(
+                    doc["id"], doc["filename"], doc["doc_type"], [fake_chunk], llm,
+                )
+                document_summaries.append(doc_summary)
+                all_chunk_summaries.append(fake_chunk)
+            except Exception as e:
+                msg = f"Fallback summary failed for '{doc['filename']}': {e}"
+                logger.error(msg)
+                warnings.append(msg)
             continue
 
         # --- Try loading pre-computed chunk summaries from DB ---
