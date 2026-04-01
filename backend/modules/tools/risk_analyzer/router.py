@@ -137,14 +137,24 @@ async def _run_analysis_bg(
     include_web_search: bool,
     user_id: uuid.UUID,
 ) -> None:
+    import logging
     from core.database import AsyncSessionLocal
     from modules.llm_gateway.service import LLMGateway
     from modules.tools.risk_analyzer.analyzer import run_full_analysis
 
+    logger = logging.getLogger("coffee_time_saver")
+
+    if include_web_search:
+        logger.warning(
+            "include_web_search=True was requested for report %s but web search "
+            "is not implemented — the flag is ignored.",
+            report_id,
+        )
+
     try:
         async with AsyncSessionLocal() as db:
             llm = LLMGateway(db)
-            report = await run_full_analysis(project_id, db, llm, include_web_search)
+            report = await run_full_analysis(project_id, db, llm)
         await _set_report(report_id, {"status": "completed", "report": report, "error": None})
 
         from core.websocket import manager

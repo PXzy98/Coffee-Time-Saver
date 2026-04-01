@@ -20,7 +20,6 @@
 | LLM Sorter (tasks) | ⚠️ Skeleton | Phase 2, not implemented |
 | LLM Briefing | ❌ Not started | Phase 2 |
 | Web search in risk analyzer | ❌ Not started | Phase 2 |
-| Scope Drift Detector tool | ❌ Not started | Phase 2 |
 
 ---
 

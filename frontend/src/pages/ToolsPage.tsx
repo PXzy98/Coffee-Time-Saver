@@ -20,7 +20,7 @@ export function ToolsPage() {
   const [projects, setProjects] = useState<ProjectOut[]>([]);
   const [selectedToolSlug, setSelectedToolSlug] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [includeWebSearch, setIncludeWebSearch] = useState(false);
+  const [includeWebSearch] = useState(false);
   const [runStatus, setRunStatus] = useState<RunStatusResponse | null>(null);
   const [report, setReport] = useState<RiskReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -223,15 +223,6 @@ export function ToolsPage() {
                         </option>
                       ))}
                     </select>
-                  </label>
-
-                  <label className="checkbox-field">
-                    <input
-                      type="checkbox"
-                      checked={includeWebSearch}
-                      onChange={(event) => setIncludeWebSearch(event.target.checked)}
-                    />
-                    <span>{t('tools.includeWebSearch')}</span>
                   </label>
 
                   <div className="form-actions">

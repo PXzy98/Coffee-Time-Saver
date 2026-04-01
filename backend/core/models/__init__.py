@@ -152,6 +152,11 @@ class Document(Base):
     source: Mapped[str] = mapped_column(String(20), default="upload")
     doc_type: Mapped[str] = mapped_column(String(20), default="general")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Pre-computed document-level summary (populated at ingestion time)
+    doc_summary: Mapped[Optional[str]] = mapped_column(Text)
+    doc_summary_metadata: Mapped[Optional[dict]] = mapped_column(JSONB)
+    doc_summary_model: Mapped[Optional[str]] = mapped_column(String(100))
+    doc_summary_hash: Mapped[Optional[str]] = mapped_column(String(64))
 
     project: Mapped[Optional["Project"]] = relationship("Project", back_populates="documents")
     uploader: Mapped[Optional["User"]] = relationship("User", back_populates="documents")
@@ -170,6 +175,11 @@ class DocumentChunk(Base):
     embedding: Mapped[Optional[list]] = mapped_column(Vector(1536))
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Pre-computed chunk-level summary (populated at ingestion time)
+    summary_text: Mapped[Optional[str]] = mapped_column(Text)
+    summary_metadata: Mapped[Optional[dict]] = mapped_column(JSONB)
+    summary_model: Mapped[Optional[str]] = mapped_column(String(100))
+    content_hash: Mapped[Optional[str]] = mapped_column(String(64))
 
     document: Mapped["Document"] = relationship("Document", back_populates="chunks")
 

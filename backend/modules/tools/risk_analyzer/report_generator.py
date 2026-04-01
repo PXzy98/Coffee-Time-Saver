@@ -73,12 +73,29 @@ def generate_pdf(report: RiskReport) -> bytes:
             story.append(Paragraph(f"Recommendation: {item.recommendation}", styles["Normal"]))
             story.append(Spacer(1, 0.3*cm))
 
+    # Warnings
+    if report.warnings:
+        story.append(Paragraph("Pipeline Warnings", styles["Heading1"]))
+        for w in report.warnings:
+            story.append(Paragraph(f"⚠ {w}", styles["Normal"]))
+        story.append(Spacer(1, 0.5*cm))
+
     # Appendix
     story.append(Paragraph("Appendix", styles["Heading1"]))
     story.append(Paragraph("Documents Analyzed:", styles["Heading2"]))
     for fname in report.documents_analyzed:
         story.append(Paragraph(f"• {fname}", styles["Normal"]))
     story.append(Spacer(1, 0.3*cm))
+
+    if report.evidence_pack_stats:
+        story.append(Paragraph("Evidence Statistics:", styles["Heading2"]))
+        stats = report.evidence_pack_stats
+        story.append(Paragraph(f"Chunks analyzed: {stats.get('chunks_analyzed', 0)}", styles["Normal"]))
+        story.append(Paragraph(f"Documents: {stats.get('documents', 0)}", styles["Normal"]))
+        story.append(Paragraph(f"Emails: {stats.get('emails', 0)}", styles["Normal"]))
+        story.append(Paragraph(f"Tasks: {stats.get('tasks', 0)}", styles["Normal"]))
+        story.append(Spacer(1, 0.3*cm))
+
     story.append(Paragraph("Methodology:", styles["Heading2"]))
     story.append(Paragraph(report.methodology_notes, styles["Normal"]))
 
@@ -129,10 +146,24 @@ def generate_docx(report: RiskReport) -> bytes:
             doc.add_paragraph(f"{item.document_b}: {item.passage_b[:200]}")
             doc.add_paragraph(f"Recommendation: {item.recommendation}")
 
+    if report.warnings:
+        doc.add_heading("Pipeline Warnings", level=1)
+        for w in report.warnings:
+            doc.add_paragraph(f"⚠ {w}")
+
     doc.add_heading("Appendix", level=1)
     doc.add_heading("Documents Analyzed", level=2)
     for fname in report.documents_analyzed:
         doc.add_paragraph(f"• {fname}")
+
+    if report.evidence_pack_stats:
+        doc.add_heading("Evidence Statistics", level=2)
+        stats = report.evidence_pack_stats
+        doc.add_paragraph(f"Chunks analyzed: {stats.get('chunks_analyzed', 0)}")
+        doc.add_paragraph(f"Documents: {stats.get('documents', 0)}")
+        doc.add_paragraph(f"Emails: {stats.get('emails', 0)}")
+        doc.add_paragraph(f"Tasks: {stats.get('tasks', 0)}")
+
     doc.add_heading("Methodology", level=2)
     doc.add_paragraph(report.methodology_notes)
 

@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import uuid
 
@@ -63,5 +64,79 @@ class IngestionService:
         if llm:
             await embedder.embed_chunks(chunk_objects, llm)
 
+        # 4. Pre-compute summaries (best-effort, requires LLM)
+        if llm:
+            try:
+                await self._summarize_and_persist(doc, chunk_objects, llm)
+            except Exception as e:
+                logger.warning("Summarization failed for %s: %s", document_id, e)
+
         await self.db.commit()
         logger.info("Ingestion complete for document %s", document_id)
+
+    async def _summarize_and_persist(
+        self,
+        doc: Document,
+        chunk_objects: list[DocumentChunk],
+        llm,
+    ) -> None:
+        """Compute chunk + document summaries and persist to DB."""
+        from modules.tools.risk_analyzer.analyzer import (
+            summarize_chunks_parallel,
+            build_document_summary,
+        )
+
+        # Resolve model name
+        try:
+            config = await llm._get_active_config("primary")
+            model_name = f"{config.provider}/{config.model}"
+        except Exception:
+            model_name = "unknown"
+
+        # Build chunk dicts for the summarizer
+        chunks_for_summary = [
+            {"id": str(c.id), "text": c.content_text, "index": c.chunk_index}
+            for c in chunk_objects
+        ]
+
+        # Chunk summaries (parallel, bounded concurrency)
+        chunk_summaries, warnings = await summarize_chunks_parallel(
+            chunks_for_summary, doc.filename, doc.doc_type, llm,
+        )
+        if warnings:
+            logger.warning("Chunk summarization warnings for %s: %s", doc.id, warnings)
+
+        # Persist chunk summaries
+        for cs, chunk_obj in zip(chunk_summaries, chunk_objects):
+            chunk_obj.summary_text = cs.summary
+            chunk_obj.summary_metadata = {
+                "key_entities": cs.key_entities,
+                "risk_signals": cs.risk_signals,
+                "topic": cs.topic,
+            }
+            chunk_obj.summary_model = model_name
+            chunk_obj.content_hash = hashlib.sha256(
+                chunk_obj.content_text.encode()
+            ).hexdigest()
+
+        # Document summary
+        doc_summary = await build_document_summary(
+            str(doc.id), doc.filename, doc.doc_type, chunk_summaries, llm,
+        )
+
+        doc.doc_summary = doc_summary.summary
+        doc.doc_summary_metadata = {
+            "key_entities": doc_summary.key_entities,
+            "risk_signals": doc_summary.risk_signals,
+            "commitments": doc_summary.commitments,
+            "chunk_count": doc_summary.chunk_count,
+        }
+        doc.doc_summary_model = model_name
+        doc.doc_summary_hash = hashlib.sha256(
+            "".join(c.content_hash or "" for c in chunk_objects).encode()
+        ).hexdigest()
+
+        logger.info(
+            "Summaries persisted for document %s: %d chunk summaries + 1 doc summary",
+            doc.id, len(chunk_summaries),
+        )
