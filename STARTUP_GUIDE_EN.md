@@ -1,4 +1,4 @@
-# Coffee Time Saver - Local Startup and Testing Guide
+# Coffee Time Saver — Local Startup and Testing Guide
 
 ## Prerequisites
 
@@ -10,109 +10,227 @@
 
 ---
 
-## 1. Startup Flow (Run Before Each Development Session)
+## 1. First-Time Setup (Run Once)
 
-### Step 1 - Start the Database and Redis Containers
+### Create Docker Containers
+
+```bash
+docker run -d --name cts-db -p 5432:5432 \
+  -e POSTGRES_DB=coffee_time_saver \
+  -e POSTGRES_USER=cts \
+  -e POSTGRES_PASSWORD=cts_password \
+  pgvector/pgvector:pg16
+
+docker run -d --name cts-redis -p 6379:6379 redis:7-alpine
+```
+
+### Initialize the Database
+
+```bash
+cd backend
+pip install -r requirements.txt -r requirements-dev.txt
+alembic upgrade head
+python seed.py --demo
+```
+
+### Install Frontend Dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## 2. Startup Flow (Four Terminals)
+
+### Terminal 1 — Database & Redis
 
 ```bash
 docker start cts-db cts-redis
 ```
 
-Verify that they are running:
-
+Verify:
 ```bash
 docker ps
 # You should see cts-db (5432) and cts-redis (6379) with status Up
 ```
 
-> **First time setup?** If the containers do not exist yet, create them first:
-> ```bash
-> docker run -d --name cts-db -p 5432:5432 \
->   -e POSTGRES_DB=coffee_time_saver \
->   -e POSTGRES_USER=cts \
->   -e POSTGRES_PASSWORD=cts_password \
->   pgvector/pgvector:pg16
->
-> docker run -d --name cts-redis -p 6379:6379 redis:7-alpine
-> ```
-> Then initialize the database once:
-> ```bash
-> cd backend
-> alembic upgrade head
-> python seed.py --demo
-> ```
-
----
-
-### Step 2 - Start the Backend (FastAPI)
+### Terminal 2 — Backend (FastAPI)
 
 ```bash
 cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload
 ```
 
-Verify:
+Wait for: `Application startup complete.`
+
+Verify: `curl http://localhost:8000/health` → `{"status":"ok"}`
+
+### Terminal 3 — Celery Worker
 
 ```bash
-curl http://localhost:8000/health
-# Returns: {"status":"ok"}
+cd backend
+celery -A tasks worker --loglevel=info --pool=solo
 ```
 
-Backend logs are printed in real time in the terminal. API docs are available at: http://localhost:8000/docs
+Wait for: `celery@... ready.`
 
----
+> **Must be run from the `backend/` directory.** `--pool=solo` is required on Windows.
+>
+> The Worker handles: file processing pipeline, email polling, LLM task re-sorting, daily briefing generation. Without the Worker, uploaded files will not produce tasks.
 
-### Step 3 - Start the Frontend (React + Vite)
-
-Open a new terminal:
+### Terminal 4 — Frontend (React + Vite)
 
 ```bash
 cd frontend
-npm install        # Only needed the first time or after package.json changes
 npm run dev
 ```
 
-After startup, open: **http://localhost:5173**
+Wait for: `Local: http://localhost:5173`
+
+Open **http://localhost:5173** and log in with `pm@example.com / pm123456`.
 
 ---
 
-## 2. Default Accounts
+## 3. Default Accounts
 
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@example.com | admin123456 |
 | PM (demo) | pm@example.com | pm123456 |
 
-> If login fails, make sure the database is running and `python seed.py --demo` has been executed.
+> **Use the PM account for demos.** All tasks, documents, and emails belong to the PM account. The Admin account will show an empty task list.
 
 ---
 
-## 3. Run Tests
+## 4. Demo Data
+
+### Load Clean Demo Data (Run Before Each Demo)
+
+```bash
+cd backend
+python seed_showcase.py
+```
+
+This **completely wipes** all existing tasks, documents, emails, and projects, then inserts:
+- 3 projects (Metro Line 6 Extension, Office Relocation Q3, ERP System Upgrade)
+- 10 tasks (7 visible open, 2 completed, 1 hidden via scheduled_at)
+- 3 document stubs (processed, with full text for Risk Analysis)
+- 2 emails (1 processed, 1 unread)
+- No pre-seeded briefing — the LLM generates it live on the first Dashboard load
+
+> Safe to re-run before every demo session.
+
+### Development Data (Non-Demo Use)
+
+```bash
+cd backend
+python seed_demo.py          # Insert test data tagged [DEMO]
+python seed_demo.py --reset  # Clear and re-insert
+```
+
+---
+
+## 5. Scheduled Tasks via Celery Beat (Optional)
+
+To enable automatic scheduled tasks (daily briefing generation, daily task re-sorting), open an additional terminal:
+
+```bash
+cd backend
+celery -A tasks beat --loglevel=info
+```
+
+| Task | Schedule (UTC) |
+|------|---------------|
+| Generate Daily Briefing for all users | Every day at 06:00 |
+| Re-sort all user tasks via LLM | Every day at 06:05 |
+| Poll email inbox | Every 5 minutes |
+
+> Without Beat running, email polling and daily re-sorting will not trigger automatically. Manual actions (uploading files, creating tasks) still trigger the Worker immediately.
+
+---
+
+## 6. Configure the LLM (Required for AI Features)
+
+The following features require a working LLM configuration: Daily Briefing, Risk Analyzer, Task Sorting, document task extraction.
+
+### Steps
+
+1. Log in as **admin@example.com**
+2. Go to **Settings → LLM**
+3. Add one entry (the `name` field must be `primary`):
+
+| Field | OpenRouter Example | Local Ollama Example |
+|-------|--------------------|----------------------|
+| name | `primary` | `primary` |
+| provider | `openai` | `ollama` |
+| api_url | `https://openrouter.ai/api/v1` | `http://localhost:11434` |
+| api_key | `sk-or-v1-xxx` (your key) | (leave blank) |
+| model | `google/gemini-flash-3` | `qwen3:8b` |
+| is_active | ✅ | ✅ |
+
+> OpenRouter is OpenAI-compatible — set `provider` to `openai`.
+
+### `backend/.env` Strategy Flags
+
+```env
+TASK_SORTER_STRATEGY=llm        # hardcoded | llm
+BRIEFING_STRATEGY=llm           # template | llm
+EMAIL_TASK_STRATEGY=llm         # regex | llm
+EMAIL_PROJECT_SUGGESTION=llm    # off | llm
+TASK_PROJECT_ASSOCIATION=llm    # manual | llm
+```
+
+Restart the backend after changing any value.
+
+---
+
+## 7. Email Bot (Optional)
+
+The email bot is optional. The backend runs normally without IMAP configuration — it simply will not poll for emails.
+
+To enable it, add the following to `backend/.env`:
+
+```env
+IMAP_HOST=imap.gmail.com
+IMAP_PORT=993
+IMAP_USER=your-address@gmail.com
+IMAP_PASSWORD=your-app-password
+IMAP_OWNER_EMAIL=pm@example.com   # Which user receives imported emails
+```
+
+For Gmail, enable two-factor authentication and generate an app-specific password.
+
+The email bot status (configured / connected / unreachable) is shown in the top navigation bar of the UI.
+
+---
+
+## 8. Running Tests
 
 ### Unit Tests (No Database Required)
 
 ```bash
 cd backend
 pytest tests/unit/ -v
-# Current result: 31 passed
 ```
 
-### Integration Tests (DB and Redis Containers Must Be Running)
+### Full E2E Showcase Test (Requires the Full Stack Running)
 
 ```bash
-cd backend
-export TEST_DATABASE_URL=postgresql+asyncpg://cts:cts_password@localhost:5432/cts_test
-pytest tests/unit/ tests/integration/ -v
+# Make sure the backend, Celery Worker, and frontend are all running
+python run_showcase_tests.py
+# Results are written to showcase_test_results.md
 ```
 
 ---
 
-## 4. Stop Services
+## 9. Stop Services
 
 ```bash
-# Stop backend/frontend: press Ctrl+C in the corresponding terminal
+# Backend / Celery / Frontend: press Ctrl+C in each terminal
 
-# Stop Docker containers while keeping data
+# Stop Docker containers (data is preserved)
 docker stop cts-db cts-redis
 
 # Permanently remove containers and data (use with caution)
@@ -121,82 +239,27 @@ docker rm cts-db cts-redis
 
 ---
 
-## 5. Seed Demo Data
-
-`seed.py` only creates users and does not include business data. To see the full Dashboard / Daily Briefing / Tasks experience, run the demo seed:
-
-```bash
-cd backend
-python seed_demo.py
-```
-
-This will create:
-
-- 3 projects (Metro Line 6, Office Relocation, ERP Upgrade)
-- 12 tasks, including overdue and due-today items
-- 3 emails
-- 1 prewritten bilingual Daily Briefing
-
-> If the data becomes inconsistent, run `python seed_demo.py --reset` to clear and rebuild it.
-
-Log in with **pm@example.com** to view the complete demo experience.
-
----
-
-## 6. Configure the LLM (Optional, Enables AI Features)
-
-The following features require a working LLM configuration:
-
-- Daily Briefing (when `BRIEFING_STRATEGY=llm`)
-- Risk Analyzer (on the Tools page)
-- Task Sorting (when `TASK_SORTER_STRATEGY=llm`)
-
-### Steps
-
-1. Log in with **admin@example.com**
-2. Go to **Settings -> LLM**
-3. Add one configuration entry:
-
-| Field | OpenRouter Example | Local Ollama Example |
-|------|---------------------|----------------------|
-| name | `primary` | `primary` |
-| provider | `openai` | `ollama` |
-| api_url | `https://openrouter.ai/api/v1` | `http://localhost:11434` |
-| api_key | `sk-or-v1-xxx` (your key) | (leave blank) |
-| model | `google/gemini-2.5-flash` | `qwen3:8b` |
-| is_active | ✅ | ✅ |
-
-> OpenRouter is OpenAI-compatible, so set `provider` to `openai`.
-
-### Backend `.env` Strategy Flags
-
-```env
-# template = no LLM required (default), llm = requires a configured LLM
-BRIEFING_STRATEGY=template
-TASK_SORTER_STRATEGY=hardcoded
-STRUCTURER_STRATEGY=regex
-```
-
-After changing any value to `llm`, restart the backend for it to take effect. Risk Analyzer always uses an LLM and is not controlled by these flags.
-
----
-
-## 7. Common Troubleshooting
+## 10. Troubleshooting
 
 | Symptom | Cause | Fix |
-|--------|-------|-----|
-| Frontend login shows `Network Error` | CORS mismatch or backend not running | Make sure the backend is running on port 8000; confirm `ALLOWED_ORIGINS` in `.env` includes `http://localhost:5173` |
-| Backend startup shows `could not connect to server` | PostgreSQL container is not running | Run `docker start cts-db` |
-| `alembic upgrade head` fails | DB is not ready or the URL is wrong | Wait until the container is fully started, then retry; check `DATABASE_URL` in `.env` |
-| Port 5432/6379 is already in use | Another local service is using the same port | Run `docker ps -a` to inspect conflicting containers and stop them |
+|---------|-------|-----|
+| Frontend login shows `Network Error` | Backend not running, or CORS mismatch | Confirm the backend is running on port 8000; check that `ALLOWED_ORIGINS` in `.env` includes `http://localhost:5173` |
+| Teammate gets `Network Error` on their machine | The frontend API URL is hardcoded to `localhost:8000`, which does not exist on another machine | In `frontend/.env.local`, set `VITE_API_BASE_URL=http://your-ip:8000`; add their access URL to `ALLOWED_ORIGINS` in `.env` |
+| Uploaded file produces no tasks | Celery Worker is not running | Make sure Terminal 3 is running the Worker from the `backend/` directory |
+| Backend startup: `No module named 'xxx'` | Dependencies not installed | Run `pip install -r requirements.txt -r requirements-dev.txt` |
+| Backend startup: `could not connect to server` | PostgreSQL container is not running | Run `docker start cts-db` |
+| `alembic upgrade head` fails | DB not ready or URL is wrong | Wait for the container to fully start, then retry; check `DATABASE_URL` in `.env` |
+| Tasks page is empty after logging in | Logged in as Admin; tasks belong to the PM account | Log out and log in as `pm@example.com` |
+| Risk Analysis keeps spinning | LLM is slow — normal duration is 60–130 seconds | Wait; you can navigate to another page and the result will be saved in the background |
 
 ---
 
-## 8. Port Overview
+## 11. Port Reference
 
-| Service | Port | Notes |
-|--------|------|-------|
-| Frontend (Vite dev) | 5173 | http://localhost:5173 |
-| Backend (FastAPI) | 8000 | http://localhost:8000/docs |
-| PostgreSQL | 5432 | `cts-db` container |
-| Redis | 6379 | `cts-redis` container |
+| Service | Port |
+|---------|------|
+| Frontend (Vite) | 5173 |
+| Backend (FastAPI) | 8000 |
+| API Docs | 8000/docs |
+| PostgreSQL | 5432 |
+| Redis | 6379 |

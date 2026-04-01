@@ -20,6 +20,7 @@ celery_app = Celery(
         "tasks.email_tasks",
         "tasks.briefing_tasks",
         "tasks.embedding_tasks",
+        "tasks.task_sort_tasks",
     ],
 )
 
@@ -37,6 +38,10 @@ celery_app.conf.update(
         "generate-daily-briefings": {
             "task": "tasks.briefing_tasks.generate_all_briefings",
             "schedule": crontab(hour=6, minute=0),
+        },
+        "resort-tasks-daily": {
+            "task": "tasks.task_sort_tasks.resort_all_tasks",
+            "schedule": crontab(hour=6, minute=5),
         },
     },
 )
