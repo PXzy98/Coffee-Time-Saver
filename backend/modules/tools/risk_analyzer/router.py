@@ -66,12 +66,13 @@ async def run_risk_analysis(
         str(report_id),
         body.project_id,
         body.include_web_search,
+        body.use_full_text,
         current_user.id,
     )
 
     await audit_log(db, action="module.risk_analyzer.invoke", entity_type="project",
                     entity_id=str(body.project_id), user_id=current_user.id,
-                    details={"include_web_search": body.include_web_search})
+                    details={"include_web_search": body.include_web_search, "use_full_text": body.use_full_text})
 
     return RunStatusResponse(report_id=report_id, status="running")
 
@@ -135,6 +136,7 @@ async def _run_analysis_bg(
     report_id: str,
     project_id: uuid.UUID,
     include_web_search: bool,
+    use_full_text: bool,
     user_id: uuid.UUID,
 ) -> None:
     import logging
@@ -154,7 +156,7 @@ async def _run_analysis_bg(
     try:
         async with AsyncSessionLocal() as db:
             llm = LLMGateway(db)
-            report = await run_full_analysis(project_id, db, llm)
+            report = await run_full_analysis(project_id, db, llm, use_full_text=use_full_text)
         await _set_report(report_id, {"status": "completed", "report": report, "error": None})
 
         from core.websocket import manager

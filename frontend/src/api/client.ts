@@ -2,17 +2,17 @@ import axios, { AxiosHeaders, type AxiosError, type InternalAxiosRequestConfig }
 import { useAuthStore } from '../store/authStore';
 import type { AccessTokenResponse } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 const WS_BASE_URL = (import.meta.env.VITE_WS_BASE_URL as string | undefined) ?? API_BASE_URL.replace(/^http/i, 'ws');
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 120000,
 });
 
 const rawClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 120000,
 });
 
 let refreshPromise: Promise<string | null> | null = null;

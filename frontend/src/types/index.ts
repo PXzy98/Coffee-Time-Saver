@@ -210,6 +210,7 @@ export interface UserRoleUpdate {
 export interface RiskAnalyzerRunRequest {
   project_id: string;
   include_web_search: boolean;
+  use_full_text?: boolean;
 }
 
 export interface RiskItem {

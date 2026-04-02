@@ -264,14 +264,14 @@ async def build_document_summary(
         fallback = " ".join(cs.summary for cs in chunk_summaries)
         return DocumentSummary(
             document_id=document_id, filename=filename, doc_type=doc_type,
-            summary=fallback[:2000], chunk_count=len(chunk_summaries),
+            summary=fallback[:16000], chunk_count=len(chunk_summaries),
         )
 
     return DocumentSummary(
         document_id=document_id,
         filename=filename,
         doc_type=doc_type,
-        summary=(data.get("summary") or "")[:2000],
+        summary=(data.get("summary") or "")[:16000],
         key_entities=data.get("key_entities") or [],
         risk_signals=data.get("risk_signals") or [],
         commitments=data.get("commitments") or [],
@@ -654,10 +654,10 @@ async def generate_report(
     stats = {}
     if evidence_pack:
         stats = {
-            "chunks_analyzed": evidence_pack.total_chunks_analyzed,
-            "documents": evidence_pack.total_documents,
-            "emails": evidence_pack.total_emails,
-            "tasks": evidence_pack.total_tasks,
+            "total_chunks_analyzed": evidence_pack.total_chunks_analyzed,
+            "total_documents": evidence_pack.total_documents,
+            "total_emails": evidence_pack.total_emails,
+            "total_tasks": evidence_pack.total_tasks,
         }
 
     return RiskReport(
@@ -748,6 +748,7 @@ async def run_full_analysis(
     db: AsyncSession,
     llm: LLMGateway,
     web_search: bool = False,
+    use_full_text: bool = False,
 ) -> RiskReport:
     """Main entry point — layered summarization pipeline."""
     if web_search:
@@ -772,6 +773,29 @@ async def run_full_analysis(
 
     for doc in context.documents:
         chunks = doc["chunks"]
+
+        # use_full_text mode: skip chunk pipeline entirely, use raw full_text as the document summary
+        if use_full_text:
+            full_text = (doc.get("full_text") or "").strip()
+            if not full_text:
+                warnings.append(f"Document '{doc['filename']}' has no text — skipped")
+                continue
+            logger.info("use_full_text=True: using raw full_text for '%s'", doc["filename"])
+            fake_chunk = ChunkSummary(
+                chunk_id="fulltext-0", document_id=doc["id"], chunk_index=0,
+                summary=full_text[:50000], topic="full document",
+            )
+            doc_summary = DocumentSummary(
+                document_id=doc["id"],
+                filename=doc["filename"],
+                doc_type=doc["doc_type"],
+                summary=full_text[:50000],
+                chunk_count=1,
+            )
+            document_summaries.append(doc_summary)
+            all_chunk_summaries.append(fake_chunk)
+            continue
+
         if not chunks:
             # Fallback: if document has full_text but no chunks, generate a
             # document summary directly from full_text via LLM so the document
@@ -785,7 +809,7 @@ async def run_full_analysis(
             try:
                 fake_chunk = ChunkSummary(
                     chunk_id="fulltext-0", document_id=doc["id"], chunk_index=0,
-                    summary=full_text[:2000], topic="full document",
+                    summary=full_text[:16000], topic="full document",
                 )
                 doc_summary = await build_document_summary(
                     doc["id"], doc["filename"], doc["doc_type"], [fake_chunk], llm,

@@ -21,6 +21,7 @@ export function ToolsPage() {
   const [selectedToolSlug, setSelectedToolSlug] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [includeWebSearch] = useState(false);
+  const [useFullText, setUseFullText] = useState(false);
   const [runStatus, setRunStatus] = useState<RunStatusResponse | null>(null);
   const [report, setReport] = useState<RiskReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +131,7 @@ export function ToolsPage() {
       const status = await runRiskAnalysis({
         project_id: selectedProjectId,
         include_web_search: includeWebSearch,
+        use_full_text: useFullText,
       });
       setRunStatus(status);
     } catch (error) {
@@ -223,6 +225,15 @@ export function ToolsPage() {
                         </option>
                       ))}
                     </select>
+                  </label>
+
+                  <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={useFullText}
+                      onChange={(e) => setUseFullText(e.target.checked)}
+                    />
+                    <span>Use full document text (skip summarization)</span>
                   </label>
 
                   <div className="form-actions">

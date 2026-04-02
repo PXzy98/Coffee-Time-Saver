@@ -281,8 +281,9 @@ async def seed_tasks(db, metro: Project, office: Project, erp: Project, pm: User
 # 4. Document stubs (pre-processed — no file on disk)
 # ---------------------------------------------------------------------------
 
-async def seed_documents(db, metro: Project, office: Project, pm: User) -> None:
+async def seed_documents(db, metro: Project, office: Project, erp: Project, pm: User) -> None:
     docs_data = [
+        # ── Metro Line 6 Extension (3 docs) ────────────────────────────
         {
             "filename": "geotechnical_survey_station3.pdf",
             "mime_type": "application/pdf",
@@ -297,7 +298,9 @@ async def seed_documents(db, metro: Project, office: Project, pm: User) -> None:
                 "concrete piles to bearing stratum at 18m depth. Groundwater table observed "
                 "at 6.2m below grade. Dewatering plan required during excavation phase. "
                 "Risk: potential settlement of adjacent building foundations if dewatering "
-                "not managed carefully. Monitoring wells to be installed at 10m intervals."
+                "not managed carefully. Monitoring wells to be installed at 10m intervals. "
+                "Construction timeline assumes no dewatering complications. Total piling "
+                "works estimated at 8 weeks. Contractor mobilisation planned for April 2026."
             ),
         },
         {
@@ -309,14 +312,39 @@ async def seed_documents(db, metro: Project, office: Project, pm: User) -> None:
             "project_id": metro.id,
             "full_text": (
                 "Engineering Change Order ECO-2241 Rev 3 — Tunnel Ventilation System. "
-                "Change scope: Increase emergency ventilation capacity from 60 m³/s to "
-                "80 m³/s per section to meet updated NFPA 502 requirements. Fan units "
+                "Change scope: Increase emergency ventilation capacity from 60 m3/s to "
+                "80 m3/s per section to meet updated NFPA 502 requirements. Fan units "
                 "upgraded from Type AV-4 to AV-6. Budget impact: +$1.2M CAD. "
                 "Schedule impact: +2 weeks. Approval required from project director "
                 "and city fire safety coordinator before procurement can proceed. "
-                "Lead time for AV-6 units: 14 weeks."
+                "Lead time for AV-6 units: 14 weeks. NOTE: The original project schedule "
+                "baseline does not account for this 2-week extension. The updated "
+                "completion date for Station 3 ventilation is now June 30, 2026, not "
+                "June 14 as stated in the master project schedule document."
             ),
         },
+        {
+            "filename": "metro_phase1_project_schedule_v2.pdf",
+            "mime_type": "application/pdf",
+            "file_size_bytes": 1_245_184,
+            "status": "completed",
+            "doc_type": "report",
+            "project_id": metro.id,
+            "full_text": (
+                "Metro Line 6 Extension — Phase 1 Master Project Schedule v2. "
+                "Approved baseline: January 15, 2026. Project Director: City Infrastructure Office. "
+                "Key milestones: Tunnelling works complete — May 30, 2026. "
+                "Station 3 structural works complete — June 14, 2026. "
+                "Station 3 ventilation and MEP complete — June 14, 2026. "
+                "Systems integration testing — July 1 to August 15, 2026. "
+                "Trial operations — September 1 to October 15, 2026. "
+                "Revenue service launch — November 1, 2026. "
+                "Budget status: Phase 1 approved at $2.4B CAD. Current forecast within approved "
+                "envelope pending ECO-2241 impact assessment. Contractor mobilisation on schedule. "
+                "Critical path: tunnelling completion drives all downstream station fit-out milestones."
+            ),
+        },
+        # ── Office Relocation Q3 (3 docs) ───────────────────────────────
         {
             "filename": "office_floorplan_v4.xlsx",
             "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -331,7 +359,123 @@ async def seed_documents(db, metro: Project, office: Project, pm: User) -> None:
                 "Floor 10: IT infrastructure, server room (tier-2), NOC, helpdesk. "
                 "Floor 11: Cafeteria (180 seats), training centre, wellness room. "
                 "Total capacity: 340 staff. Move date: September 15, 2026. "
-                "IT sign-off required on server room spec by June 30."
+                "IT sign-off required on server room spec by June 30. "
+                "Note: Floor 10 server room is designed for 12 racks at standard density. "
+                "Current inventory at existing offices totals 18 racks. Consolidation "
+                "plan required before move date."
+            ),
+        },
+        {
+            "filename": "relocation_it_requirements.docx",
+            "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "file_size_bytes": 348_160,
+            "status": "completed",
+            "doc_type": "specification",
+            "project_id": office.id,
+            "full_text": (
+                "IT Infrastructure Requirements — Office Relocation Q3. "
+                "Prepared by: IT Infrastructure Lead. Date: February 20, 2026. "
+                "Network: 10Gbps backbone between floors, 1Gbps to desktop, WiFi 6 coverage "
+                "across all floors. Cabling to be completed 4 weeks before move date. "
+                "Server room: Minimum 20 rack units required to accommodate current inventory "
+                "plus 30% growth headroom. Power: 2N redundant UPS with 30-minute runtime. "
+                "Cooling: Precision air conditioning unit, N+1 redundancy. "
+                "Move sequence: IT systems must be migrated floor by floor over 3 weekends "
+                "to avoid business disruption. All systems must be validated before staff arrive. "
+                "Critical dependency: Network cabling sign-off by August 15 to allow "
+                "system migration to begin August 22."
+            ),
+        },
+        {
+            "filename": "relocation_steering_committee_brief_march.pdf",
+            "mime_type": "application/pdf",
+            "file_size_bytes": 512_000,
+            "status": "completed",
+            "doc_type": "report",
+            "project_id": office.id,
+            "full_text": (
+                "Office Relocation Q3 — Steering Committee Brief. March 2026. "
+                "Project status: On track. Move date confirmed September 15, 2026. "
+                "Budget: $3.2M approved. Current forecast $3.1M. "
+                "Open issues: (1) Server room capacity — floor plan v4 allocates 12 racks; "
+                "IT requirements document specifies 20 racks minimum. Gap not yet resolved. "
+                "Decision required from CIO before construction drawings are finalized. "
+                "(2) Moving company selection in progress — quotes received from Allied and "
+                "AMJ Campbell. Hercules quote outstanding. Award target: April 30. "
+                "(3) Staff communications plan approved and distributed. 340 staff notified. "
+                "Next steering committee: April 15, 2026. "
+                "Decision required: Server room rack capacity — approve floor plan revision "
+                "or reduce IT inventory before move."
+            ),
+        },
+        # ── ERP System Upgrade (3 docs) ────────────────────────────────
+        {
+            "filename": "erp_migration_plan_v1.pdf",
+            "mime_type": "application/pdf",
+            "file_size_bytes": 2_097_152,
+            "status": "completed",
+            "doc_type": "report",
+            "project_id": erp.id,
+            "full_text": (
+                "SAP S/4HANA Migration Plan v1 — ERP System Upgrade. "
+                "Prepared by: SI Partner (Accenture). Approved: December 10, 2025. "
+                "Scope: Migration from SAP ECC 6.0 to SAP S/4HANA Cloud, Private Edition. "
+                "Data migration approach: Full historical data migration (7 years). "
+                "Parallel run period: 8 weeks. Go-live target: January 1, 2027. "
+                "Key phases: (1) System landscape design — Jan to Feb 2026. "
+                "(2) Data migration preparation — Mar to Jun 2026. "
+                "(3) Development and configuration — Apr to Sep 2026. "
+                "(4) User acceptance testing — Oct to Nov 2026. "
+                "(5) Cutover and go-live — December 2026. "
+                "License assumption: Active SAP ECC development license maintained throughout "
+                "migration period. License renewal due March 15, 2026 — finance to process. "
+                "Risk: License lapse will suspend sandbox and development environments, "
+                "blocking phases 2 and 3."
+            ),
+        },
+        {
+            "filename": "erp_project_charter_v2.docx",
+            "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "file_size_bytes": 718_848,
+            "status": "completed",
+            "doc_type": "specification",
+            "project_id": erp.id,
+            "full_text": (
+                "ERP System Upgrade — Project Charter v2. "
+                "Project Sponsor: CFO. Project Manager: PM Account. "
+                "Approved budget: $4.8M CAD over 24 months. "
+                "Objectives: Replace legacy SAP ECC 6.0 with S/4HANA to support "
+                "real-time financial reporting, streamline procure-to-pay, and retire "
+                "three legacy integration middleware components. "
+                "Key constraints: No disruption to fiscal year-end processing (March 31 annually). "
+                "All cutover activities must occur outside Q4 (Oct-Dec). "
+                "Go-live window: January 2027 only. "
+                "Current status: Project paused as of March 20, 2026 pending SAP license "
+                "renewal resolution. Development environment suspended. SI partner on "
+                "standby — daily cost of delay: approximately $4,200 in standby fees. "
+                "Escalation: CFO office notified March 22. Finance processing renewal invoice."
+            ),
+        },
+        {
+            "filename": "erp_user_training_plan.docx",
+            "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "file_size_bytes": 425_984,
+            "status": "completed",
+            "doc_type": "general",
+            "project_id": erp.id,
+            "full_text": (
+                "ERP System Upgrade — User Training and Change Management Plan. "
+                "Prepared by: Change Management Lead. Date: January 30, 2026. "
+                "Training scope: 520 users across Finance, Procurement, HR, and Operations. "
+                "Approach: Role-based training modules delivered via classroom and e-learning. "
+                "Training schedule: September to November 2026 (10 weeks before go-live). "
+                "Train-the-trainer program: 25 super-users identified and trained by August 2026. "
+                "Change readiness assessment: Planned for Q2 2026. "
+                "Note: Training timeline assumes go-live January 1, 2027 as per project charter. "
+                "If go-live is delayed beyond January 2027, training schedule must be revised. "
+                "Current risk: Project pause due to license issue may compress training window "
+                "if development phase slips. Minimum training window required: 8 weeks. "
+                "If development completes after October 15, go-live must move to April 2027."
             ),
         },
     ]
@@ -422,7 +566,7 @@ async def main() -> None:
         await seed_tasks(db, metro, office, erp, pm)
 
         print("\n[3/5] Documents (stubs)...")
-        await seed_documents(db, metro, office, pm)
+        await seed_documents(db, metro, office, erp, pm)
 
         print("\n[4/5] Emails...")
         await seed_emails(db, metro, erp)
@@ -433,7 +577,7 @@ async def main() -> None:
 Done! Summary:
   Projects : 3  (Metro Line 6 Extension, Office Relocation Q3, ERP System Upgrade)
   Tasks    : 10 (7 visible open, 2 completed, 1 hidden until +30d)
-  Documents: 3  stubs (completed, with full_text for risk analysis)
+  Documents: 9  stubs (3 per project, completed, with full_text for risk analysis)
   Emails   : 2  (1 processed, 1 unread)
   Briefing : will be LLM-generated on first Dashboard load
 

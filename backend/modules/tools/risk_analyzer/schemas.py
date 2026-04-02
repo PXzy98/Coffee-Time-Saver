@@ -11,6 +11,10 @@ class RiskAnalyzerRunRequest(BaseModel):
         deprecated=True,
         description="Deprecated — web search is not implemented. This field is ignored.",
     )
+    use_full_text: bool = Field(
+        default=False,
+        description="Skip chunk summarization and use the raw full_text of each document directly for analysis.",
+    )
 
 
 # ---------------------------------------------------------------------------
